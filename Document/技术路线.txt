@@ -1,0 +1,35 @@
+# HomeCat猫舍管理软件技术路线
+
+## 前端技术方案
+1. **Electron跨平台架构**
+   - 基于Chromium和Node.js构建桌面应用
+   - 支持Windows/Android/IOS三端统一体验
+   - 原生API访问能力+Web技术灵活性
+
+2. **React+TypeScript实现**
+   - 采用函数组件+Hooks开发模式
+   - TypeScript强类型保障代码质量
+   - 状态管理：Context API + useReducer
+   - UI库：Ant Design/Material-UI
+
+## 后端技术方案
+1. **SQLite轻量数据库**
+   - 零配置、无服务端进程
+   - ACID事务支持
+   - 本地文件存储(单文件.db)
+   - 通过TypeORM/Sequelize操作
+
+## 架构设计原则
+1. **MVP分层架构**
+   - Model: 数据实体+业务逻辑
+   - View: React组件树
+   - Presenter: 桥接层(IPC通信)
+
+2. **模块化设计**
+   - 功能模块按猫品种/健康/日程划分
+   - 插件机制支持扩展
+
+## 跨平台实现路径
+1. 核心功能共用TypeScript代码
+2. 平台特定代码通过process.platform区分
+3. 构建工具：electron-builder多平台打包
