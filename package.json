@@ -1,0 +1,26 @@
+{
+  "main": "dist/electron/main.js",
+  "type": "module",
+  "devDependencies": {
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "^4.4.1",
+    "antd": "^5.25.1",
+    "concurrently": "^9.1.2",
+    "electron": "^36.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "sqlite3": "^5.1.7",
+    "typeorm": "^0.3.23",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "scripts": {
+    "dev": "concurrently \"vite dev\" \"electron .\"",
+    "build": "tsc && vite build",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2"
+  }
+}
