@@ -1,0 +1,57 @@
+# Electron+React+Vite 项目结构说明
+
+## 核心配置文件
+
+1. **electron.vite.config.ts**  
+Electron+Vite 集成配置：
+- 主进程配置(main)：依赖externalizeDepsPlugin处理Node模块
+- 预加载脚本(preload)：独立编译配置
+- 渲染进程(renderer)：配置React插件和路径别名
+
+2. **tsconfig三件套**
+- tsconfig.json：基础TypeScript配置
+- tsconfig.node.json：主进程类型检查配置
+- tsconfig.web.json：渲染进程类型检查及路径映射
+
+3. **package.json**  
+包含多环境构建脚本：
+- dev：开发模式启动
+- build：全量构建命令
+- build:win：Windows平台打包
+- postinstall：自动安装Electron依赖
+
+## 源代码组织
+
+└── src/
+    ├── main/      # 主进程代码
+    ├── preload/   # 预加载脚本
+    └── renderer/  # React渲染进程
+        └── src/
+            ├── env.d.ts   # 类型声明
+            └── **/*.tsx   # 组件目录
+
+## 构建体系
+
+- 开发工具链：
+  - Electron Vite 3.1.0
+  - electron-builder 25.1.8
+- 多阶段构建：
+  1. TypeScript类型检查
+  2. 主进程/渲染进程分离编译
+  3. Electron Builder打包
+
+## 辅助配置
+
+- .electron-builder.yml：安装包构建配置
+- resources/：应用图标资源
+- build/：平台相关构建配置
+
+[新增内容在源码组织架构部分]
+## 源码组织架构
+...
+### 界面模块化设计
+新增Apps目录用于存放独立界面模块，各模块通过路由系统或动态加载机制集成。该设计：
+1. 实现功能边界清晰化 - 每个界面模块包含自有组件/逻辑/样式
+2. 支持按需加载 - 通过React.lazy实现代码分割
+3. 统一路由配置 - 在src/routes中集中管理导航逻辑
+4. 符合原子设计原则 - 模块可组合复用
