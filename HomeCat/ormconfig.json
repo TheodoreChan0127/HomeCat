@@ -1,0 +1,13 @@
+{
+  "type": "sqlite",
+  "host": "localhost",
+  "port": 3306,
+  "username": "test",
+  "password": "test",
+  "synchronize": true,
+  "logging": false,
+  "database": "database.sqlite",
+  "entities": ["src/entity/**/*.ts"],
+  "migrations": ["src/migration/**/*.ts"],
+  "subscribers": ["src/subscriber/**/*.ts"]
+}

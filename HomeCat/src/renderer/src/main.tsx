@@ -6,6 +6,7 @@ import CatProfile from './Apps/CatProfile'
 import DailyRecords from './Apps/DailyRecords'
 import ReminderSettings from './Apps/ReminderSettings'
 import DataAnalysis from './Apps/DataAnalysis'
+import "reflect-metadata";
 
 // 配置路由
 const router = createBrowserRouter([

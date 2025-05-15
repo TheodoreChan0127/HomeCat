@@ -25,7 +25,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <Layout className="h-screen">
       {/* 左侧导航栏（保持原有逻辑） */}
-      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} style={{ height: '100vh' }} theme="light">
+      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} style={{ height: '100vh', position: 'fixed' }} theme="light">
         <Menu
   theme="light"
   mode="inline"
@@ -42,7 +42,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </Sider>
 
       {/* 右侧内容区（渲染子组件） */}
-      <Layout className="flex flex-col">
+      <Layout className="flex flex-col" style={{ marginLeft: collapsed ? '80px' : '200px' }}>
         <Content className="flex-1 p-4 overflow-auto">
           {children} {/* 渲染子组件内容 */}
         </Content>
