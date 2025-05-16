@@ -2,19 +2,10 @@ import { Button, Card, Input, Select, Space} from 'antd'
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { DashboardLayout } from '../ui/components/dashboard/dashboard'
 import { JSX } from 'react/jsx-runtime'
-
 import { useState, useCallback, useEffect } from 'react'
-
-interface Cat {
-  id: number;
-  name: string;
-  breed: string;
-  age: number;
-  isPregnant: boolean;
-  isSick: boolean;
-  isVaccinated: boolean;
-  isDewormed: boolean;
-}
+import { CatDbProxy } from '../../../db/CatDbProxy'
+import { Cat } from '../../../entity/Cat'
+import AddCatModal from '@renderer/ui/components/AddCatModal'
 
 // Remove unused CatProfileProps interface
 // interface CatProfileProps {} // Remove this line
@@ -40,9 +31,17 @@ const currentCats = catsData.data
 
   // 获取猫咪列表
   const fetchCats = useCallback(async () => {
-    const result = await CatApi.getCats(currentPage, itemsPerPage, filters)
+    const result = await CatDbProxy.getCats(currentPage, itemsPerPage, filters)
     setCatsData(result)
   }, [currentPage, itemsPerPage, filters])
+
+  // 控制添加模态框显示状态
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false)
+
+  // 触发显示添加模态框
+  const handleAddCat = useCallback(() => {
+    setIsAddModalVisible(true)
+  }, [])
 
   useEffect(() => {
     fetchCats()
@@ -52,6 +51,11 @@ const currentCats = catsData.data
 
   return (
     <DashboardLayout>
+      <AddCatModal
+        visible={isAddModalVisible}
+        onCancel={() => setIsAddModalVisible(false)}
+        onSuccess={fetchCats}
+      />
       <div className="p-4 flex flex-col h-full">
         {/* 顶部筛选栏 */}
         <Card className="mb-4">
@@ -74,19 +78,7 @@ const currentCats = catsData.data
               value={filters.breed}
               onChange={(value) => setFilters({...filters, breed: value})}
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={async () => {
-  const newCat = {
-    name: '新猫咪',
-    breed: '英短',
-    age: 1,
-    isPregnant: false,
-    isSick: false,
-    isVaccinated: false,
-    isDewormed: false
-  }
-  await CatApi.addCat(newCat)
-  fetchCats()
-}}>添加猫咪</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddCat}>添加猫咪</Button>
           </Space>
         </Card>
 
