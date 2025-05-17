@@ -1,7 +1,7 @@
 import { Select, Button, Card } from 'antd'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { DashboardLayout } from '../ui/components/dashboard/dashboard' // 新增布局导入
-import { JSX } from 'react/jsx-runtime'
+import React,{ JSX } from "react"
+import { DashboardLayout } from '../components/dashboard'
 
 const mockData = [
   { month: '1月', weight: 2.1 },

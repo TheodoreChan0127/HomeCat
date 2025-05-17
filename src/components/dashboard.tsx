@@ -1,6 +1,6 @@
 import { Layout, Menu } from 'antd'
 import { useNavigate, useLocation } from 'react-router-dom'
-import React from 'react'
+import React, { JSX } from 'react'
 
 const { Sider, Content } = Layout
 
@@ -9,15 +9,14 @@ interface DashboardLayoutProps {
   children: React.ReactNode // 允许子组件内容
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps): JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
-  const pathToKey = {
+  const pathToKey: { [key: string]: string } = {
     '/': '0',
     '/cat-profile': '1',
-    '/daily-records': '2',
-    '/reminder-settings': '3',
-    '/data-analysis': '4'
+    '/reminder-settings': '2',
+    '/data-analysis': '3'
   }
   const currentKey = pathToKey[location.pathname] || '0'
   const [collapsed, setCollapsed] = React.useState(false)
@@ -34,9 +33,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   items={[
     { key: '0', label: '回到首页', onClick: () => navigate('/') },
     { key: '1', label: '猫咪档案', onClick: () => navigate('/cat-profile') },
-    { key: '2', label: '日常记录', onClick: () => navigate('/daily-records') },
-    { key: '3', label: '提醒设置', onClick: () => navigate('/reminder-settings') },
-    { key: '4', label: '数据分析', onClick: () => navigate('/data-analysis') }
+    { key: '2', label: '提醒设置', onClick: () => navigate('/reminder-settings') },
+    { key: '3', label: '数据分析', onClick: () => navigate('/data-analysis') }
   ]}
 />
       </Sider>

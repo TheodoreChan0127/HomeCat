@@ -1,7 +1,8 @@
 import { List, Switch, Select, Button, Space } from 'antd'
 import { DragOutlined } from '@ant-design/icons' // 修正图标导入
-import { DashboardLayout } from '../ui/components/dashboard/dashboard' // 新增布局导入
+import React from 'react'
 import { JSX } from 'react/jsx-runtime'
+import { DashboardLayout } from '../components/dashboard'
 
 interface ReminderItem {
   id: number
@@ -37,13 +38,13 @@ function ReminderSettings(): JSX.Element {
             <List.Item
               key={item.id}
               actions={[
-                <Switch checked={item.enabled} />,
-                <Select defaultValue={item.frequency} style={{ width: 120 }}>
+                <Switch key={`switch-${item.id}`} checked={item.enabled} />,
+                <Select key={`frequency-${item.id}`} defaultValue={item.frequency} style={{ width: 120 }}>
                   <Option value="每天">每天</Option>
                   <Option value="每周">每周</Option>
                   <Option value="每月">每月</Option>
                 </Select>,
-                <Select mode="multiple" defaultValue={item.channels} style={{ width: 160 }}>
+                <Select key={`channels-${item.id}`} mode="multiple" defaultValue={item.channels} style={{ width: 160 }}>
                   <Option value="APP通知">APP通知</Option>
                   <Option value="短信">短信</Option>
                   <Option value="微信">微信</Option>

@@ -1,18 +1,18 @@
 import { Button, Card, Input, Select, Space} from 'antd'
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
-import { DashboardLayout } from '../ui/components/dashboard/dashboard'
 import { JSX } from 'react/jsx-runtime'
-import { useState, useCallback, useEffect } from 'react'
-import { CatDbProxy } from '../../../db/CatDbProxy'
-import { Cat } from '../../../entity/Cat'
-import AddCatModal from '@renderer/ui/components/AddCatModal'
+import React,{ useState, useCallback, useEffect } from 'react'
+import { DashboardLayout } from '../components/dashboard'
+import { Cat } from '../entity/Cat'
+import { CatDbProxy } from '../db/CatDbProxy'
+import AddCatModal from '../components/AddCatModal'
 
 // Remove unused CatProfileProps interface
 // interface CatProfileProps {} // Remove this line
 
 function CatProfile(): JSX.Element {
-    // 通过IPC获取猫咪数据
-    const [catsData, setCatsData] = useState<{ data: Cat[]; total: number; totalPages: number }>({ data: [], total: 0, totalPages: 1 })
+    // 通过CatDbProxy获取猫咪数据
+    const [catsData,  setCatsData] = useState<{ data: Cat[]; total: number; totalPages: number }>({ data: [], total: 0, totalPages: 1 })
   // 分页状态
 const [currentPage, setCurrentPage] = useState(1)
 const itemsPerPage = 10
@@ -20,18 +20,11 @@ const totalPages = catsData.totalPages
 // 当前页数据
 const currentCats = catsData.data
   // 筛选状态
-  const [filters, setFilters] = useState({
-    name: '',
-    breed: '',
-    isPregnant: false,
-    isSick: false,
-    isVaccinated: false,
-    isDewormed: false
-  })
+  const [filters, setFilters] = useState({    name: '',    breed: '',    isPregnant: undefined,    isSick: undefined,    isVaccinated: undefined,    isDewormed: undefined  })
 
   // 获取猫咪列表
   const fetchCats = useCallback(async () => {
-    const result = await CatDbProxy.getCats(currentPage, itemsPerPage, filters)
+    const result = await CatDbProxy.getCats({ currentPage, itemsPerPage, filters })
     setCatsData(result)
   }, [currentPage, itemsPerPage, filters])
 
@@ -51,11 +44,11 @@ const currentCats = catsData.data
 
   return (
     <DashboardLayout>
-      <AddCatModal
+      {<AddCatModal
         visible={isAddModalVisible}
         onCancel={() => setIsAddModalVisible(false)}
         onSuccess={fetchCats}
-      />
+      />}
       <div className="p-4 flex flex-col h-full">
         {/* 顶部筛选栏 */}
         <Card className="mb-4">
