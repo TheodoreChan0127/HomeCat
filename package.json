@@ -50,7 +50,9 @@
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^1.1.7",
     "electron-squirrel-startup": "^1.0.1",
+    "next-safe-action": "^7.10.8",
     "react-router-dom": "^7.6.0",
-    "recharts": "^2.15.3"
+    "recharts": "^2.15.3",
+    "zod": "^3.24.4"
   }
 }

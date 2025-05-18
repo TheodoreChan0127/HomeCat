@@ -59,13 +59,6 @@ export class CatDbProxy {
     return { ...cat, id };
   }
 
-  public static async exportCats(): Promise<Cat[]> {
-    return await db.cats.toArray();
-  }
-
-  public static async importCats(cats: Cat[]): Promise<void> {
-    await db.cats.bulkPut(cats);
-  }
   public static async addIllness(illness: Illness): Promise<Illness> {
     const id = await db.illnesses.add(illness);
     return { ...illness, id };
@@ -105,5 +98,9 @@ export class CatDbProxy {
       externalDewormings,
     };
   }
-  // 可扩展其他API：updateCat、deleteCat等
+  public static async updateCat(cat: Cat): Promise<Cat> {
+    await db.cats.update(cat.id, cat);
+    return cat;
+  }
+  // 可扩展其他API：deleteCat等
 }

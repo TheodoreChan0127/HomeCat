@@ -1,4 +1,5 @@
-import React,{ JSX, useState } from "react"
+import React,{ JSX, useState, useEffect } from "react"
+import { getBreeds, saveBreeds } from '../config/breeds'
 import { CatDbProxy } from '../db/CatDbProxy'
 import { Modal, Form, Input, Select, Switch, Space, DatePicker } from 'antd'
 
@@ -10,6 +11,15 @@ interface AddCatModalProps {
 
 function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.Element {
   const [form] = Form.useForm()
+  const [breeds, setBreeds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadBreeds = async () => {
+      const breedList = getBreeds();
+      setBreeds(breedList);
+    };
+    loadBreeds();
+  }, []);
   const [isSickVisible, setIsSickVisible] = useState(false)
   const [isVaccinatedVisible, setIsVaccinatedVisible] = useState(false)
   const [dewormingTypes, setDewormingTypes] = useState<('internal' | 'external')[]>([]);
@@ -66,12 +76,34 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
           label="猫咪品种"
           rules={[{ required: true, message: '请选择猫咪品种' }]}
         >
-          <Select placeholder="请选择猫咪品种">
-            <Select.Option value="英短">英短</Select.Option>
-            <Select.Option value="美短">美短</Select.Option>
-            <Select.Option value="布偶">布偶</Select.Option>
-            <Select.Option value="暹罗">暹罗</Select.Option>
-          </Select>
+          <Select
+            placeholder="请选择或输入猫咪品种"
+            style={{ width: 200 }}
+            options={breeds.map(breed => ({ value: breed, label: breed }))}
+            allowClear
+            showSearch
+            onSelect={value => form.setFieldsValue({ breed: value })}
+            onSearch={async (input) => {
+              if (!breeds.includes(input)) {
+                const newBreeds = [...breeds, input];
+                setBreeds(newBreeds);
+                saveBreeds(newBreeds);
+              }
+            }}
+          />
+          <Input
+            placeholder="输入新品种"
+            style={{ width: 200, marginLeft: 8 }}
+            onChange={(e) => {
+              const newBreed = e.target.value;
+              if (newBreed && !breeds.includes(newBreed)) {
+                const newBreeds = [...breeds, newBreed];
+                setBreeds(newBreeds);
+                saveBreeds(newBreeds);
+                form.setFieldsValue({ breed: newBreed });
+              }
+            }}
+          />
         </Form.Item>
 
         <Form.Item
