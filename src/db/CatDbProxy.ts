@@ -99,7 +99,7 @@ export class CatDbProxy {
     };
   }
   public static async updateCat(cat: Cat): Promise<Cat> {
-    await db.cats.update(cat.id, cat);
+    await db.cats.update(cat.id, { ...cat });
     return cat;
   }
   // 可扩展其他API：deleteCat等

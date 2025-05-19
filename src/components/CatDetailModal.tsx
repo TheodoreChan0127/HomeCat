@@ -1,62 +1,41 @@
-import React, { JSX, useEffect } from 'react'
-import { useActionState } from 'react-hook-form'
-import { Modal, Form, Input, Switch, Space, DatePicker } from 'antd'
+import React, { JSX, useState, useEffect } from 'react'
+import { Modal, Form, Input, Switch, Space, DatePicker, Select } from 'antd'
 import { Cat } from '../entity/Cat'
 import { CatDbProxy } from '../db/CatDbProxy'
-import { z } from 'zod'
-import { createSafeActionClient } from 'next-safe-action'
-import { ActionResponse } from '../types/actions'
+import { getBreeds } from '../config/breeds'
 
 interface CatDetailModalProps {
   visible: boolean
   onCancel: () => void
-  cat: Cat
   onSuccess: () => void
+  catData?: Cat
 }
 
-const CatSchema = z.object({
-  name: z.string().min(1, '名称不能为空'),
-  breed: z.string().min(1, '品种不能为空'),
-  age: z.number().min(0, '年龄不能为负'),
-  fatherId: z.number().min(0, '父ID不能为负').optional(),
-  motherId: z.number().min(0, '母ID不能为负').optional(),
-  color: z.string().optional(),
-  birthDate: z.string().datetime().optional(),
-  arrivalDate: z.string().datetime().optional(),
-  totalIncome: z.number().min(0, '收益不能为负').optional(),
-  totalExpense: z.number().min(0, '支出不能为负').optional(),
-  weight: z.number().min(0, '体重不能为负').optional(),
-  isPregnant: z.boolean(),
-  isSick: z.boolean(),
-  isVaccinated: z.boolean(),
-  isDewormed: z.boolean()
-})
-
-const updateCatAction = createSafeActionClient()
-  .schema(CatSchema)
-  .action(async (input: z.infer<typeof CatSchema>): Promise<ActionResponse<Cat>> => {
-    try {
-      const updatedCat = await CatDbProxy.updateCat(input)
-      return { success: true, data: updatedCat }
-    } catch (error) {
-      return { success: false, error: '更新猫咪信息失败' }
-    }
-  })
-
-function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalProps): JSX.Element {
+function CatDetailModal({ visible, onCancel, onSuccess, catData }: CatDetailModalProps): JSX.Element {
   const [form] = Form.useForm()
-  const [actionState, dispatch] = useActionState(updateCatAction)
+  const [breeds, setBreeds] = useState<string[]>([])
+  const [isSickVisible, setIsSickVisible] = useState(false)
+  const [isVaccinatedVisible, setIsVaccinatedVisible] = useState(false)
+  const [isDewormedChecked, setIsDewormedChecked] = useState(false)
 
   useEffect(() => {
-    form.setFieldsValue(cat)
-  }, [cat])
+    const loadBreeds = async () => {
+      const breedList = getBreeds()
+      setBreeds(breedList)
+    }
+    loadBreeds()
+    if (catData) form.setFieldsValue(catData)
+  }, [catData])
 
   const handleSubmit = async () => {
-    const values = await form.validateFields()
-    const result = await dispatch(values)
-    if (result.success) {
+    try {
+      const values = await form.validateFields()
+      await CatDbProxy.updateCat(values)
       onSuccess()
+      form.resetFields()
       onCancel()
+    } catch (error) {
+      console.error('修改猫咪信息失败:', error)
     }
   }
 
@@ -69,63 +48,97 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
       okText="保存修改"
       cancelText="取消"
     >
-      <Form form={form} layout="vertical">
-        <Form.Item name="name" label="名称" rules={[{ required: true }]}>
-          <Input />
+      <Form form={form} layout="vertical" initialValues={{ age: 1 }}>
+        <Form.Item name="id" label="宠物编号" rules={[{ required: true, type: 'number', min: 1, message: '宠物编号无效' }]}>
+          <Input type="number" readOnly />
         </Form.Item>
 
-        <Form.Item name="breed" label="品种" rules={[{ required: true }]}>
-          <Input />
+        <Form.Item name="name" label="名称" rules={[{ required: true, message: '请输入猫咪名称' }]}>
+          <Input placeholder="请输入猫咪名称" />
         </Form.Item>
 
-        <Form.Item name="age" label="年龄（岁）" rules={[{ type: 'number', min: 0 }]}>
-          <Input type="number" />
+        <Form.Item name="breed" label="品种" rules={[{ required: true, message: '请选择猫咪品种' }]}>
+          <Select
+            placeholder="请选择猫咪品种"
+            style={{ width: 200 }}
+            options={breeds.map(breed => ({ value: breed, label: breed }))}
+            allowClear
+            showSearch
+          />
         </Form.Item>
 
-        <Form.Item name="fatherId" label="父ID" rules={[{ type: 'number', min: 0 }]}>
-          <Input type="number" />
+        <Form.Item name="age" label="年龄（岁）" rules={[{ required: true, type: 'number', min: 0, message: '请输入有效年龄' }]}>
+          <Input type="number" placeholder="请输入年龄" min={0} />
         </Form.Item>
 
-        <Form.Item name="motherId" label="母ID" rules={[{ type: 'number', min: 0 }]}>
-          <Input type="number" />
+        <Form.Item name="fatherId" label="父ID" rules={[{ type: 'number', min: 0, message: '请输入有效父ID' }]}>
+          <Input type="number" placeholder="请输入父ID（可选）" min={0} />
         </Form.Item>
 
-        <Form.Item name="color" label="毛色">
-          <Input />
+        <Form.Item name="motherId" label="母ID" rules={[{ type: 'number', min: 0, message: '请输入有效母ID' }]}>
+          <Input type="number" placeholder="请输入母ID（可选）" min={0} />
         </Form.Item>
 
-        <Form.Item name="birthDate" label="出生日期">
-          <DatePicker format="YYYY-MM-DD" />
+        <Form.Item name="color" label="毛色" rules={[{ message: '请输入毛色' }]}>
+          <Input placeholder="请输入毛色（可选）" />
         </Form.Item>
 
-        <Form.Item name="arrivalDate" label="到家日期">
-          <DatePicker format="YYYY-MM-DD" />
+        <Form.Item name="animalType" label="动物类型" rules={[{ required: true, message: '请输入动物类型' }]}>
+          <Input placeholder="请输入动物类型" />
+        </Form.Item>
+
+        <Form.Item name="birthDate" label="出生日期" rules={[{ type: 'date', message: '请选择正确的出生日期' }]}>
+          <DatePicker format="YYYY-MM-DD" placeholder="请选择出生日期（可选）" />
+        </Form.Item>
+
+        <Form.Item name="arrivalDate" label="到家日期" rules={[{ type: 'date', message: '请选择正确的到家日期' }]}>
+          <DatePicker format="YYYY-MM-DD" placeholder="请选择到家日期（可选）" />
         </Form.Item>
 
         <Form.Item name="totalIncome" label="总收益（元）" rules={[{ type: 'number', min: 0 }]}>
-          <Input type="number" />
+          <Input type="number" placeholder="请输入总收益（可选）" min={0} />
         </Form.Item>
 
         <Form.Item name="totalExpense" label="总支出（元）" rules={[{ type: 'number', min: 0 }]}>
-          <Input type="number" />
+          <Input type="number" placeholder="请输入总支出（可选）" min={0} />
         </Form.Item>
 
         <Form.Item name="weight" label="体重（kg）" rules={[{ type: 'number', min: 0 }]}>
-          <Input type="number" />
+          <Input type="number" placeholder="请输入体重（可选）" min={0} />
         </Form.Item>
 
-        <Space direction="vertical">
+        <Space direction="vertical" size="middle">
           <Form.Item name="isPregnant" valuePropName="checked">
             <Switch checkedChildren="已怀孕" unCheckedChildren="未怀孕" />
           </Form.Item>
           <Form.Item name="isSick" valuePropName="checked">
-            <Switch checkedChildren="生病中" unCheckedChildren="健康" />
+            <Switch checkedChildren="生病中" unCheckedChildren="健康" onChange={checked => setIsSickVisible(checked)} />
           </Form.Item>
+        {isSickVisible && (
+          <div>
+            <Form.Item name="illnessName" label="患病名称" rules={[{ required: true }]}>
+              <Input placeholder="请输入患病名称" />
+            </Form.Item>
+            <Form.Item name="treatmentMethod" label="治疗方法" rules={[{ required: true }]}>
+              <Input placeholder="请输入治疗方法" />
+            </Form.Item>
+          </div>
+        )}
           <Form.Item name="isVaccinated" valuePropName="checked">
-            <Switch checkedChildren="已接种" unCheckedChildren="未接种" />
+            <Switch checkedChildren="已接种疫苗" unCheckedChildren="未接种" onChange={checked => setIsVaccinatedVisible(checked)} />
           </Form.Item>
+        {isVaccinatedVisible && (
+          <div>
+            <Form.Item name="vaccineBrand" label="疫苗品牌" rules={[{ required: true }]}>
+              <Input placeholder="请输入疫苗品牌" />
+            </Form.Item>
+            <Form.Item name="injectionDate" label="接种日期" rules={[{ required: true }]}>
+              <DatePicker format="YYYY-MM-DD" placeholder="请选择接种日期" />
+            </Form.Item>
+          </div>
+        )}
           <Form.Item name="isDewormed" valuePropName="checked">
-            <Switch checkedChildren="已驱虫" unCheckedChildren="未驱虫" />
+            <Switch checkedChildren="已驱虫" unCheckedChildren="未驱虫" onChange={checked => setIsDewormedChecked(checked)} />
           </Form.Item>
         </Space>
       </Form>
