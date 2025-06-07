@@ -3,12 +3,12 @@ import { VaccinationRecord } from "./VaccinationRecord";
 import { ExternalDeworming } from "./ExternalDeworming";
 import { Illness } from "./Illness";
 import { InternalDeworming } from "./InternalDeworming";
+import { WeightRecord } from "./WeightRecord";
 
 export class PetStatus {
   id: number;
-  weight: number[] = [];
-  lastWeightDate: Date = new Date();
-  diet = "";
+  weightRecords: WeightRecord[] = []; // 替换原weight数组
+  diet: string;
   pregnancies: Pregnant[] = [];
   vaccinationRecords: VaccinationRecord[] = [];
   externalDewormings: ExternalDeworming[] = [];

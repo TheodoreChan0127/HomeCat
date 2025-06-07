@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { CatDbProxy } from "../db/CatDbProxy";
 import { PetStatus } from "./PetStatus";
 
 export interface CatFilters {
@@ -33,7 +34,7 @@ export class Cat {
 
   totalExpense = 0; // 单猫支出总计
 
-  petStatus: PetStatus = undefined as any; // 宠物状态
+  petStatusId: number; // 宠物状态
 
   weight = 0; // 体重
 

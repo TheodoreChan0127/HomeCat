@@ -46,7 +46,6 @@ React/Next.js:
 - Place static content and interfaces at file end.
 - Use content variables for static content outside render functions.
 - Minimize 'use client', 'useEffect', and 'setState'. Favor RSC.
-- Use Zod for form validation.
 - Wrap client components in Suspense with fallback.
 - Use dynamic loading for non-critical components.
 - Optimize images: WebP format, size data, lazy loading.
@@ -54,35 +53,6 @@ React/Next.js:
 - Use error boundaries for unexpected errors: Implement error boundaries using error.tsx and global-error.tsx files to handle unexpected errors and provide a fallback UI.
 - Use useActionState with react-hook-form for form validation.
 - Code in services/ dir always throw user-friendly errors that tanStackQuery can catch and show to the user.
-- Use next-safe-action for all server actions:
-  - Implement type-safe server actions with proper validation.
-  - Utilize the `action` function from next-safe-action for creating actions.
-  - Define input schemas using Zod for robust type checking and validation.
-  - Handle errors gracefully and return appropriate responses.
-  - Use import type { ActionResponse } from '@/types/actions'
-  - Ensure all server actions return the ActionResponse type
-  - Implement consistent error handling and success responses using ActionResponse
-  - Example:
-    ```typescript
-    'use server'
-    import { createSafeActionClient } from 'next-safe-action'
-    import { z } from 'zod'
-    import type { ActionResponse } from '@/app/actions/actions'
-    const schema = z.object({
-      value: z.string()
-    })
-    export const someAction = createSafeActionClient()
-      .schema(schema)
-      .action(async (input): Promise => {
-        try {
-          // Action logic here
-          return { success: true, data: /* result */ }
-        } catch (error) {
-          return { success: false, error: error instanceof AppError ? error : appErrors.UNEXPECTED_ERROR, }
-        }
-      })
-    ```
-
 Key Conventions:
 
 1. Rely on Next.js App Router for state changes.

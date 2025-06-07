@@ -13,3 +13,7 @@ export const getBreeds = (): string[] => {
 export const saveBreeds = (breeds: string[]): void => {
   localStorage.setItem("catBreeds", JSON.stringify(breeds));
 };
+
+export const clearBreeds = (): void => {
+  localStorage.removeItem("catBreeds");
+};

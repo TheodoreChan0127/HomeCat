@@ -1,11 +1,11 @@
 export class Pregnant {
   id: number;
   petStatusId: number;
-  matingDate: Date = new Date();
-  expectedDeliveryDate: Date = new Date();
-  reminder7Days: Date | null = null;
-  reminder3Days: Date | null = null;
-  reminder1Day: Date | null = null;
+  matingDate: string;
+  expectedDeliveryDate: string;
+  reminder7Days: string;
+  reminder3Days: string;
+  reminder1Day: string;
   isDelivered = false;
   deliveryCount: number | null = null;
   notes = "";
