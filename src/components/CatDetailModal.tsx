@@ -1,10 +1,10 @@
-import React, { JSX } from 'react'
-import { Modal, Form, Input, DatePicker } from 'antd'
+import React, { JSX, useState } from 'react'
+import { Modal, Form, Input, DatePicker, Button } from 'antd'
 import { Cat } from '../entity/Cat'
 import { CatDbProxy } from '../db/CatDbProxy'
 import { AnimalType } from '../Types/Enum'
 import dayjs from 'dayjs';
-import { getBreeds } from '../config/breeds'
+import { getBreeds, saveBreeds } from '../config/breeds'
 
 interface CatDetailModalProps {
   visible: boolean
@@ -15,6 +15,7 @@ interface CatDetailModalProps {
 
 function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalProps): JSX.Element {
   const [form] = Form.useForm()
+  const [breeds, setBreeds] = useState<string[]>([]);
 
   // 修改表单初始化逻辑
   React.useEffect(() => {
@@ -26,6 +27,14 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
       })
     }
   }, [cat, form])
+
+  React.useEffect(() => {
+    const loadBreeds = async () => {
+      const breedList = getBreeds();
+      setBreeds(breedList);
+    };
+    loadBreeds();
+  }, []);
   
   const handleSubmit = async () => {
     try {
@@ -101,6 +110,30 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
 
         <Form.Item name="animalType" label="动物类型" rules={[{ required: true, message: '请输入动物类型' }]}>
           <Input placeholder="请输入动物类型" />
+        </Form.Item>
+
+        <Form.Item name="newBreedInput">
+            <Input
+              placeholder="输入新品种"
+              style={{ width: 200 }}
+            />
+            <Button 
+              type="primary"
+              onClick={() => {
+                const newBreed = form.getFieldValue('newBreedInput');
+                if (newBreed && !breeds.includes(newBreed)) {
+                  const newBreeds = [...breeds, newBreed];
+                  setBreeds(newBreeds);
+                  saveBreeds(newBreeds);
+                  form.setFieldsValue({ 
+                    breed: newBreed,
+                    newBreedInput: ''
+                  });
+                }
+              }}
+            >
+              添加品种
+            </Button>
         </Form.Item>
 
         <Form.Item name="birthDate" label="出生日期" rules={[{ type: 'date', message: '请选择正确的出生日期' }]}>
