@@ -87,7 +87,11 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
       okText="保存修改"
       cancelText="取消"
     >
-      <Form form={form} layout="vertical">
+      <Form 
+        form={form} 
+        layout="vertical"
+        onFinish={handleSubmit}  // 添加表单提交绑定
+      >
         <Form.Item name="name" label="名称" rules={[{ required: true }]}>
           <Input />
         </Form.Item>

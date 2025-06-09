@@ -5,7 +5,6 @@ import { VaccinationRecord } from "../entity/VaccinationRecord";
 import { ExternalDeworming } from "../entity/ExternalDeworming";
 import { InternalDeworming } from "../entity/InternalDeworming";
 import { Pregnant } from "../entity/Pregnant";
-import { PetStatus } from "../entity/PetStatus";
 import { WeightRecord } from "../entity/WeightRecord";
 
 interface GetCatsParams {
@@ -93,12 +92,17 @@ export class CatDbProxy {
     const vaccinationRecords = await db.vaccinationRecords.count();
     const internalDewormings = await db.internalDewormings.count();
     const externalDewormings = await db.externalDewormings.count();
+    const pregnancies = await db.pregnancies.count();
+    const weightRecords = await db.weightRecords.count();
+
     return {
       cats,
       illnesses,
       vaccinationRecords,
       internalDewormings,
       externalDewormings,
+      pregnancies,
+      weightRecords,
     };
   }
   public static async updateCat(cat: Cat): Promise<Cat> {
@@ -114,38 +118,21 @@ export class CatDbProxy {
         "rw",
         [
           db.cats,
-          db.petStatuses,
           db.illnesses,
           db.vaccinationRecords,
           db.internalDewormings,
           db.externalDewormings,
+          db.pregnancies, // 补充怀孕记录关联表
+          db.weightRecords, // 补充体重记录关联表
         ],
         async () => {
-          // 先删除关联记录
-          const petStatus = await db.petStatuses
-            .where("catId")
-            .equals(id)
-            .first();
-          if (petStatus) {
-            await db.illnesses
-              .where("petStatusId")
-              .equals(petStatus.id)
-              .delete();
-            await db.vaccinationRecords
-              .where("petStatusId")
-              .equals(petStatus.id)
-              .delete();
-            await db.internalDewormings
-              .where("petStatusId")
-              .equals(petStatus.id)
-              .delete();
-            await db.externalDewormings
-              .where("petStatusId")
-              .equals(petStatus.id)
-              .delete();
-            await db.petStatuses.where("catId").equals(id).delete();
-          }
-          // 最后删除主记录
+          // 修正外键查询条件为catId
+          await db.illnesses.where("catId").equals(id).delete();
+          await db.vaccinationRecords.where("catId").equals(id).delete();
+          await db.internalDewormings.where("catId").equals(id).delete();
+          await db.externalDewormings.where("catId").equals(id).delete();
+          await db.pregnancies.where("catId").equals(id).delete(); // 新增怀孕记录删除
+          await db.weightRecords.where("catId").equals(id).delete(); // 新增体重记录删除
           await db.cats.delete(id);
         }
       );
@@ -162,19 +149,21 @@ export class CatDbProxy {
         "rw",
         [
           db.cats,
-          db.petStatuses,
           db.illnesses,
           db.vaccinationRecords,
           db.internalDewormings,
           db.externalDewormings,
+          db.pregnancies,
+          db.weightRecords,
         ],
         async () => {
           await db.illnesses.clear();
           await db.vaccinationRecords.clear();
           await db.internalDewormings.clear();
           await db.externalDewormings.clear();
-          await db.petStatuses.clear();
           await db.cats.clear();
+          await db.pregnancies.clear();
+          await db.weightRecords.clear();
         }
       );
     } catch (error) {
@@ -209,178 +198,58 @@ export class CatDbProxy {
     }
   }
 
-  static async getPregnanciesByPetStatusId(
-    petStatusId: number
-  ): Promise<Pregnant[]> {
+  static async getPregnanciesByCatId(catId: number): Promise<Pregnant[]> {
     try {
-      return await db.pregnancies
-        .where("petStatusId")
-        .equals(petStatusId)
-        .toArray();
+      return await db.pregnancies.where("catId").equals(catId).toArray();
     } catch (error) {
       throw new Error(`获取怀孕记录失败: ${error.message}`);
     }
   }
 
-  static async getVaccinationsByPetStatusId(
-    petStatusId: number
+  static async getVaccinationsByCatId(
+    catId: number
   ): Promise<VaccinationRecord[]> {
     try {
-      return await db.vaccinationRecords
-        .where("petStatusId")
-        .equals(petStatusId)
-        .toArray();
+      return await db.vaccinationRecords.where("catId").equals(catId).toArray();
     } catch (error) {
       throw new Error(`获取疫苗接种记录失败: ${error.message}`);
     }
   }
 
-  static async getIllnessesByPetStatusId(
-    petStatusId: number
-  ): Promise<Illness[]> {
+  static async getIllnessesByCatId(catId: number): Promise<Illness[]> {
     try {
-      return await db.illnesses
-        .where("petStatusId")
-        .equals(petStatusId)
-        .toArray();
+      return await db.illnesses.where("catId").equals(catId).toArray();
     } catch (error) {
       throw new Error(`获取疾病记录失败: ${error.message}`);
     }
   }
 
-  static async getExternalDewormingsByPetStatusId(
-    petStatusId: number
+  static async getExternalDewormingsByCatId(
+    catId: number
   ): Promise<ExternalDeworming[]> {
     try {
-      return await db.externalDewormings
-        .where("petStatusId")
-        .equals(petStatusId)
-        .toArray();
+      return await db.externalDewormings.where("catId").equals(catId).toArray();
     } catch (error) {
       throw new Error(`获取体外驱虫记录失败: ${error.message}`);
     }
   }
 
-  static async getInternalDewormingsByPetStatusId(
-    petStatusId: number
+  static async getInternalDewormingsByCatId(
+    catId: number
   ): Promise<InternalDeworming[]> {
     try {
-      return await db.internalDewormings
-        .where("petStatusId")
-        .equals(petStatusId)
-        .toArray();
+      return await db.internalDewormings.where("catId").equals(catId).toArray();
     } catch (error) {
       throw new Error(`获取体内驱虫记录失败: ${error.message}`);
     }
   }
 
-  // 完整宠物状态操作
-  static async getFullPetStatus(catId: number): Promise<PetStatus> {
-    try {
-      const petStatus = await db.petStatuses
-        .where("catId")
-        .equals(catId)
-        .first();
-
-      if (!petStatus) return new PetStatus();
-
-      // 并行获取所有关联数据
-      const [
-        pregnancies,
-        vaccinations,
-        illnesses,
-        externalDewormings,
-        internalDewormings,
-      ] = await Promise.all([
-        this.getPregnanciesByPetStatusId(petStatus.id),
-        this.getVaccinationsByPetStatusId(petStatus.id),
-        this.getIllnessesByPetStatusId(petStatus.id),
-        this.getExternalDewormingsByPetStatusId(petStatus.id),
-        this.getInternalDewormingsByPetStatusId(petStatus.id),
-      ]);
-
-      return {
-        ...petStatus,
-        pregnancies,
-        vaccinationRecords: vaccinations,
-        illnesses,
-        externalDewormings,
-        internalDewormings,
-      };
-    } catch (error) {
-      throw new Error(`获取完整宠物状态失败: ${error.message}`);
-    }
+  static async addWeightRecord(record: WeightRecord): Promise<number> {
+    return await db.weightRecords.add(record);
   }
 
-  // 保存完整宠物状态（事务操作）
-  // 在事务操作中添加weightRecords表
-  static async saveFullPetStatus(petStatus: PetStatus): Promise<void> {
-    await db.transaction(
-      "rw",
-      [
-        db.petStatuses,
-        db.weightRecords, // 新增weightRecords表
-        db.pregnancies,
-        db.vaccinationRecords,
-        db.illnesses,
-        db.externalDewormings,
-        db.internalDewormings,
-      ],
-      async () => {
-        const statusId = await db.petStatuses.put(petStatus);
-        // 并行保存子记录
-        await Promise.all([
-          // 添加体重记录处理
-          ...petStatus.weightRecords.map((record) =>
-            record.id
-              ? this.updateWeightRecord(record)
-              : this.addWeightRecord({ ...record, petStatusId: statusId })
-          ),
-          // vepregnancy记录
-          ...petStatus.pregnancies.map((record) =>
-            record.id
-              ? this.updatePregnancy(record)
-              : this.addPregnancy({ ...record, petStatusId: statusId })
-          ),
-          // 疫苗接种记录
-          ...petStatus.vaccinationRecords.map((record) =>
-            record.id
-              ? this.updateVaccinationRecord(record)
-              : this.addVaccinationRecord({ ...record, petStatusId: statusId })
-          ),
-          // 疾病记录
-          ...petStatus.illnesses.map((record) =>
-            record.id
-              ? this.updateIllness(record)
-              : this.addIllness({ ...record, petStatusId: statusId })
-          ),
-          // 体外驱虫记录
-          ...petStatus.externalDewormings.map((record) =>
-            record.id
-              ? this.updateExternalDeworming(record)
-              : this.addExternalDeworming({ ...record, petStatusId: statusId })
-          ),
-          // 体内驱虫记录
-          ...petStatus.internalDewormings.map((record) =>
-            record.id
-              ? this.updateInternalDeworming(record)
-              : this.addInternalDeworming({ ...record, petStatusId: statusId })
-          ),
-        ]);
-      }
-    );
-  }
-
-  // 添加CRUD方法
-  static async addWeightRecord(record: WeightRecord): Promise<WeightRecord> {
-    const id = await db.weightRecords.add(record);
-    return { ...record, id };
-  }
-
-  static async getWeightRecordsByPetStatusId(
-    petStatusId: number
-  ): Promise<WeightRecord[]> {
-    return db.weightRecords.where("petStatusId").equals(petStatusId).toArray();
+  static async getWeightRecordsByCatId(catId: number): Promise<WeightRecord[]> {
+    return db.weightRecords.where("catId").equals(catId).toArray();
   }
 
   static async updateWeightRecord(record: WeightRecord): Promise<WeightRecord> {
@@ -388,7 +257,7 @@ export class CatDbProxy {
     return record;
   }
 
-  // 可扩展其他API：deleteCat示例已实现，可继续扩展getCatById等方法
+  // 可扩展其他API：deleteCat示例已实现，可继续扩展getCatByCatId等方法
   public static async updateIllness(illness: Illness): Promise<Illness> {
     try {
       await db.illnesses.update(illness.id, illness);
@@ -441,6 +310,66 @@ export class CatDbProxy {
     } catch (error) {
       throw new Error(
         `更新体外驱虫记录失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`
+      );
+    }
+  }
+
+  public static async deleteIllness(id: number): Promise<void> {
+    try {
+      await db.illnesses.delete(id);
+    } catch (error) {
+      throw new Error(
+        `删除疾病记录失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`
+      );
+    }
+  }
+
+  public static async deleteVaccinationRecord(id: number): Promise<void> {
+    try {
+      await db.vaccinationRecords.delete(id);
+    } catch (error) {
+      throw new Error(
+        `删除疫苗接种记录失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`
+      );
+    }
+  }
+
+  public static async deleteInternalDeworming(id: number): Promise<void> {
+    try {
+      await db.internalDewormings.delete(id);
+    } catch (error) {
+      throw new Error(
+        `删除体内驱虫记录失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`
+      );
+    }
+  }
+
+  public static async deleteExternalDeworming(id: number): Promise<void> {
+    try {
+      await db.externalDewormings.delete(id);
+    } catch (error) {
+      throw new Error(
+        `删除体外驱虫记录失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`
+      );
+    }
+  }
+
+  public static async deleteWeightRecord(id: number): Promise<void> {
+    try {
+      await db.weightRecords.delete(id);
+    } catch (error) {
+      throw new Error(
+        `删除体重记录失败: ${
           error instanceof Error ? error.message : "未知错误"
         }`
       );

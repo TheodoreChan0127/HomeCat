@@ -1,21 +1,55 @@
 import { Form, DatePicker, Modal } from 'antd';
-import { Pregnant } from '../../entity/Pregnant';
 import { CatDbProxy } from '../../db/CatDbProxy';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Pregnant } from '../../entity/Pregnant'; // 新增类型导入
+import dayjs, { Dayjs } from 'dayjs';
 
 interface PregnancyModalProps {
   visible: boolean;
   onCancel: () => void;
   onSuccess?: () => void;
+  catId?: number;
+  editingRecord?: Pregnant; // 新增编辑记录参数
 }
 
-export function PregnancyModal({ visible, onCancel, onSuccess }: PregnancyModalProps) {
-  const [form] = Form.useForm<Pregnant>();
+export function PregnancyModal({ 
+  visible, 
+  onCancel, 
+  onSuccess,
+  catId,
+  editingRecord // 新增参数
+}: PregnancyModalProps) {
+  const [form] = Form.useForm();
+
+  // 新增：初始化编辑数据
+  useEffect(() => {
+    if (editingRecord) {
+      form.setFieldsValue({
+        matingDate:dayjs(new Date(editingRecord.matingDate)),
+        expectedDeliveryDate: dayjs(new Date(editingRecord.expectedDeliveryDate))
+      });
+    } else {
+      form.resetFields();
+    }
+  }, [editingRecord, form]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      await CatDbProxy.addPregnancy({ ...values, petStatusId: 0 }); // 实际使用需传入正确petStatusId
+      const payload = {
+        ...values,
+        catId: catId || 0,
+        matingDate: values.matingDate?.toISOString(),
+        expectedDeliveryDate: values.expectedDeliveryDate?.toISOString()
+      };
+      
+      // 区分新增/更新操作
+      if (editingRecord) {
+        await CatDbProxy.updatePregnancy({ ...payload, id: editingRecord.id });
+      } else {
+        await CatDbProxy.addPregnancy(payload);
+      }
+      
       onSuccess?.();
       onCancel();
     } catch (error) {
@@ -25,11 +59,11 @@ export function PregnancyModal({ visible, onCancel, onSuccess }: PregnancyModalP
 
   return (
     <Modal
-      title="怀孕记录"
+      title={editingRecord ? "编辑怀孕记录" : "怀孕记录"} // 动态标题
       open={visible}
       onCancel={onCancel}
       onOk={handleSubmit}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical">
         <Form.Item

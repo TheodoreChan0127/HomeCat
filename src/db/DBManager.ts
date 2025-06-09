@@ -4,14 +4,12 @@ import { Cat } from "../entity/Cat";
 import { ExternalDeworming } from "../entity/ExternalDeworming";
 import { Illness } from "../entity/Illness";
 import { InternalDeworming } from "../entity/InternalDeworming";
-import { PetStatus } from "../entity/PetStatus";
 import { Pregnant } from "../entity/Pregnant";
 import { VaccinationRecord } from "../entity/VaccinationRecord";
 import { WeightRecord } from "../entity/WeightRecord";
 
 export class DBManager extends Dexie {
   cats: Dexie.Table<Cat, number>;
-  petStatuses: Dexie.Table<PetStatus, number>;
   externalDewormings: Dexie.Table<ExternalDeworming, number>;
   internalDewormings: Dexie.Table<InternalDeworming, number>;
   illnesses: Dexie.Table<Illness, number>;
@@ -23,16 +21,15 @@ export class DBManager extends Dexie {
     super("HomeCatDB");
     this.version(1).stores({
       cats: "++id, name, breed, age, isPregnant, isSick, isVaccinated, isDewormed, fatherId, motherId, color, birthDate, arrivalDate, totalIncome, totalExpense, weight",
-      petStatuses: "++id, catId, lastWeightDate",
-      externalDewormings: "++id, petStatusId, dewormingDate",
-      internalDewormings: "++id, petStatusId, dewormingDate",
-      illnesses: "++id, petStatusId, illnessName",
-      pregnancies: "++id, petStatusId, matingDate, expectedDeliveryDate",
-      vaccinationRecords: "++id, petStatusId, injectionDate",
-      weightRecords: "++id, petStatusId, weighDate",
+      // Add catId to all related stores:
+      externalDewormings: "++id, catId, dewormingDate", // Changed from "++id, Id, dewormingDate"
+      internalDewormings: "++id, catId, dewormingDate", // Changed from "++id, Id, dewormingDate"
+      illnesses: "++id, catId, illnessName", // Changed from "++id, Id, illnessName"
+      pregnancies: "++id, catId, matingDate, expectedDeliveryDate", // Changed from "++id, Id, matingDate, expectedDeliveryDate"
+      vaccinationRecords: "++id, catId, injectionDate", // Changed from "++id, Id, injectionDate"
+      weightRecords: "++id, catId, weighDate", // Changed from "++id, Id, weighDate"
     });
     this.cats = this.table("cats");
-    this.petStatuses = this.table("petStatuses");
     this.externalDewormings = this.table("externalDewormings");
     this.internalDewormings = this.table("internalDewormings");
     this.illnesses = this.table("illnesses");
