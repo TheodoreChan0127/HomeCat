@@ -1,5 +1,5 @@
 import React, { JSX, useState, useEffect } from 'react'
-import { Modal, Form, Input, DatePicker, Select } from 'antd'
+import { Modal, Form, Input, DatePicker, Select, Space, Tag } from 'antd'
 import { Cat } from '../entity/Cat'
 import { CatDbProxy } from '../db/CatDbProxy'
 import { AnimalType } from '../Types/Enum'
@@ -101,9 +101,34 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
           />
         </Form.Item>
 
+        <Form.Item label="猫咪状态">
+          <Space wrap>
+            <Form.Item name="isPregnant" valuePropName="checked" noStyle>
+              <Tag color={cat?.isPregnant ? "red" : "default"}>
+                {cat?.isPregnant ? "怀孕中" : "未怀孕"}
+              </Tag>
+            </Form.Item>
+            <Form.Item name="isSick" valuePropName="checked" noStyle>
+              <Tag color={cat?.isSick ? "orange" : "default"}>
+                {cat?.isSick ? "生病中" : "健康"}
+              </Tag>
+            </Form.Item>
+            <Form.Item name="isVaccinated" valuePropName="checked" noStyle>
+              <Tag color={cat?.isVaccinated ? "green" : "default"}>
+                {cat?.isVaccinated ? "已接种疫苗" : "未接种疫苗"}
+              </Tag>
+            </Form.Item>
+            <Form.Item name="isDewormed" valuePropName="checked" noStyle>
+              <Tag color={cat?.isDewormed ? "blue" : "default"}>
+                {cat?.isDewormed ? "已驱虫" : "未驱虫"}
+              </Tag>
+            </Form.Item>
+          </Space>
+        </Form.Item>
+
         <Form.Item
           name="age"
-          label="年龄（岁）"
+          label="年龄（月）"
           rules={[{ required: true, message: '请输入有效年龄' }]}
         >
           <Input type="number" placeholder="请输入年龄" min={0} />

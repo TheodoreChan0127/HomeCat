@@ -10,7 +10,7 @@ interface DewormModalProps {
   onCancel: () => void;
   onSuccess?: () => void;
   title: string;
-  apiMethod: (data: any) => Promise<void>;
+  apiMethod: (data: any) => Promise<any>;
   catId?: number;
   editingRecord?: ExternalDeworming | InternalDeworming; // 新增编辑记录参数
 }

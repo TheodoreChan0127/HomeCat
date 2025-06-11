@@ -12,7 +12,8 @@ export type TableName =
   | "internalDewormings"
   | "externalDewormings"
   | "pregnancies"
-  | "weightRecords";
+  | "weightRecords"
+  | "todos";
 
 // 定义表信息接口
 export interface TableInfo {
@@ -32,4 +33,5 @@ export const dbTables: Record<TableName, Table> = {
   externalDewormings: db.externalDewormings,
   pregnancies: db.pregnancies,
   weightRecords: db.weightRecords,
+  todos: db.todos,
 };

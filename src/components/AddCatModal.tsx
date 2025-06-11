@@ -79,7 +79,7 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
 
         <Form.Item
           name="age"
-          label="年龄（岁）"
+          label="年龄（月）"
           rules={[{message: '请输入有效年龄' }]}
         >
           <Input placeholder="请输入年龄" min={0} />

@@ -1,4 +1,4 @@
-import { Button, Card, Input, message, Select, Space } from 'antd'
+import { Button, Card, Input, message, Select, Space, Tag } from 'antd'
 import { PlusOutlined, SearchOutlined, TeamOutlined } from '@ant-design/icons'
 import { JSX } from 'react/jsx-runtime'
 import React,{ useState, useCallback, useEffect } from 'react'
@@ -132,7 +132,7 @@ const handleClearAll = useCallback(async () => {
           {/* 顶部筛选栏 */}
           <Card 
             className="mb-6 hover:shadow-md transition-shadow duration-300"
-            bodyStyle={{ padding: '16px' }}
+            styles ={{ body: { padding: '16px' } }}
           >
             <Space size="middle" style={{ width: '100%', justifyContent: 'space-between' }}>
               <Space size="middle">
@@ -175,7 +175,7 @@ const handleClearAll = useCallback(async () => {
           </Card>
 
           {/* 猫咪卡片列表 */}
-          <div className="flex-1">
+          <div className="flex-1 overflow-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {currentCats.map((cat) => (
                 <Card 
@@ -183,28 +183,44 @@ const handleClearAll = useCallback(async () => {
                   hoverable
                   className="hover:shadow-lg transition-shadow duration-300"
                 >
-                  <div className="flex items-center justify-between p-4"> 
-                    <div 
-                      className="flex-grow cursor-pointer" 
-                      onClick={() => { 
-                        setSelectedCat(cat) 
-                        setIsDetailModalVisible(true) 
-                      }}
-                    > 
-                      <h3 className="text-lg font-medium mb-1">{cat.name}</h3> 
-                      <p className="text-gray-600 text-sm">{cat.breed} · {cat.age}岁</p> 
-                    </div> 
-                    <Button 
-                      type="primary" 
-                      size="small"
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        setSelectedCat(cat); 
-                        setIsStatusModalVisible(true); 
-                      }} 
-                    > 
-                      查看状态 
-                    </Button> 
+                  <div className="flex flex-col p-4"> 
+                    <div className="flex items-center justify-between mb-3"> 
+                      <div 
+                        className="flex-grow cursor-pointer" 
+                        onClick={() => { 
+                          setSelectedCat(cat) 
+                          setIsDetailModalVisible(true) 
+                        }}
+                      > 
+                        <h3 className="text-lg font-medium mb-1">{cat.name}</h3> 
+                        <p className="text-gray-600 text-sm">{cat.breed} · {cat.age}岁</p> 
+                      </div> 
+                      <Button 
+                        type="primary" 
+                        size="small"
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setSelectedCat(cat); 
+                          setIsStatusModalVisible(true); 
+                        }} 
+                      > 
+                        查看状态 
+                      </Button> 
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag color={cat.isPregnant ? "red" : "default"}>
+                        {cat.isPregnant ? "怀孕中" : "未怀孕"}
+                      </Tag>
+                      <Tag color={cat.isSick ? "orange" : "default"}>
+                        {cat.isSick ? "生病中" : "健康"}
+                      </Tag>
+                      <Tag color={cat.isVaccinated ? "green" : "default"}>
+                        {cat.isVaccinated ? "已接种疫苗" : "未接种疫苗"}
+                      </Tag>
+                      <Tag color={cat.isDewormed ? "blue" : "default"}>
+                        {cat.isDewormed ? "已驱虫" : "未驱虫"}
+                      </Tag>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -213,8 +229,8 @@ const handleClearAll = useCallback(async () => {
 
           {/* 分页控件 - 固定在底部 */}
           <Card 
-            className="mt-6 sticky bottom-0 bg-white shadow-md"
-            bodyStyle={{ padding: '12px' }}
+            className="mt-6 bg-white shadow-md"
+            styles={{body:{ padding: '12px' }}}
           >
             <Space className="w-full flex justify-center" size="middle" align='center'>
               <Button 

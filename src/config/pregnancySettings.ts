@@ -1,30 +1,23 @@
 /* eslint-disable import/no-unresolved */
-import { PregnancySettings } from "../Types/settings";
+import { getItem, setItem } from "./storage";
 
-const PREGNANCY_SETTINGS_KEY = "pregnancy_settings";
+export interface PregnancySettings {
+  pregnancyDuration: number; // 默认怀孕天数
+  enableReminders: boolean; // 是否启用怀孕提醒
+}
+
+const DEFAULT_SETTINGS: PregnancySettings = {
+  pregnancyDuration: 63,
+  enableReminders: true,
+};
+
+const STORAGE_KEY = "pregnancy_settings";
 
 export const getPregnancySettings = (): PregnancySettings => {
-  const defaultSettings: PregnancySettings = {
-    pregnancyDuration: 63,
-    enableReminders: true,
-  };
-
-  const savedSettings = localStorage.getItem(PREGNANCY_SETTINGS_KEY);
-  if (savedSettings) {
-    try {
-      return JSON.parse(savedSettings);
-    } catch (error) {
-      console.error("解析怀孕设置失败:", error);
-      return defaultSettings;
-    }
-  }
-  return defaultSettings;
+  const settings = getItem<PregnancySettings>(STORAGE_KEY);
+  return settings || DEFAULT_SETTINGS;
 };
 
 export const savePregnancySettings = (settings: PregnancySettings): void => {
-  try {
-    localStorage.setItem(PREGNANCY_SETTINGS_KEY, JSON.stringify(settings));
-  } catch (error) {
-    console.error("保存怀孕设置失败:", error);
-  }
+  setItem(STORAGE_KEY, settings);
 };

@@ -1,4 +1,4 @@
-import { Form, Input, Modal } from 'antd';
+import { Form, Input, Modal, Switch } from 'antd';
 import { CatDbProxy } from '../../db/CatDbProxy';
 import React, { useEffect } from 'react';
 import { Illness } from '../../entity/Illness';
@@ -24,7 +24,8 @@ export function IllnessRecordModal({
     if (editingRecord) {
       form.setFieldsValue({
         illnessName: editingRecord.illnessName,
-        treatmentMethod: editingRecord.treatmentMethod
+        treatmentMethod: editingRecord.treatmentMethod,
+        isCured: editingRecord.isCured
       });
     } else {
       form.resetFields();
@@ -36,7 +37,8 @@ export function IllnessRecordModal({
       const values = await form.validateFields();
       const payload = {
         ...values,
-        catId: catId || 0
+        catId: catId || 0,
+        isCured: values.isCured || false
       };
       
       if (editingRecord) {
@@ -74,6 +76,13 @@ export function IllnessRecordModal({
           rules={[{ required: true, message: '请输入治疗方法' }]}
         >
           <Input.TextArea rows={3} />
+        </Form.Item>
+        <Form.Item
+          label="是否已痊愈"
+          name="isCured"
+          valuePropName="checked"
+        >
+          <Switch />
         </Form.Item>
       </Form>
     </Modal>

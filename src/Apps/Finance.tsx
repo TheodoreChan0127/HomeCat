@@ -14,7 +14,6 @@ import PageTitle from '../components/PageTitle';
 import { DollarOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
-const { TabPane } = Tabs;
 const { Option } = Select;
 
 function Finance() {
@@ -300,102 +299,114 @@ function Finance() {
         {/* 记录展示 */}
         <Card>
           <Title level={4}>收支记录</Title>
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="物品采购" key="1">
-              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
-                <Button type="primary" onClick={() => setPurchaseModalOpen(true)}>
-                  添加采购记录
-                </Button>
-              </div>
-              <Table
-                dataSource={purchases}
-                columns={purchaseColumns}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-              />
-            </TabPane>
-            <TabPane tab="物品销售" key="2">
-              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
-                <Button type="primary" onClick={() => setGoodsSaleModalOpen(true)}>
-                  添加销售记录
-                </Button>
-              </div>
-              <Table
-                dataSource={goodsSales}
-                columns={goodsSaleColumns}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-              />
-            </TabPane>
-            <TabPane tab="小猫销售" key="3">
-              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
-                <Button type="primary" onClick={() => setKittenSaleModalOpen(true)}>
-                  添加销售记录
-                </Button>
-              </div>
-              <Table
-                dataSource={kittenSales}
-                columns={kittenSaleColumns}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-              />
-            </TabPane>
-          </Tabs>
+          <Tabs defaultActiveKey="1" items={[
+            {
+              key: '1',
+              label: '物品采购',
+              children: (
+                <>
+                  <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button type="primary" onClick={() => setPurchaseModalOpen(true)}>
+                      添加采购记录
+                    </Button>
+                  </div>
+                  <Table
+                    dataSource={purchases}
+                    columns={purchaseColumns}
+                    rowKey="id"
+                    pagination={{ pageSize: 10 }}
+                  />
+                  <Modal open={purchaseModalOpen} title="添加采购" onCancel={() => setPurchaseModalOpen(false)} onOk={handleAddPurchase} destroyOnHidden>
+                    <Form form={purchaseForm} layout="vertical">
+                      <Form.Item label="采购事项" name="item" rules={[{ required: true, message: '请输入事项' }]}><Input /></Form.Item>
+                      <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+                      <Form.Item label="是否单猫支出" name="isSingleCat">
+                        <Select>
+                          <Option value={true}>是</Option>
+                          <Option value={false}>否</Option>
+                        </Select>
+                      </Form.Item>
+                      <Form.Item noStyle shouldUpdate={(prev, curr) => prev.isSingleCat !== curr.isSingleCat}>
+                        {({ getFieldValue }) =>
+                          getFieldValue('isSingleCat') === true || getFieldValue('isSingleCat') === 'true' ? (
+                            <Form.Item label="对应猫咪" name="catId" rules={[{ required: true, message: '请选择猫咪' }]}> 
+                              <Select showSearch filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}>
+                                {cats.map(cat => <Option key={cat.id} value={cat.id}>{cat.name}</Option>)}
+                              </Select>
+                            </Form.Item>
+                          ) : null
+                        }
+                      </Form.Item>
+                      <Form.Item label="采购日期" name="purchaseDate" rules={[{ required: true, message: '请选择日期' }]}>
+                        <DatePicker style={{ width: '100%' }} />
+                      </Form.Item>
+                    </Form>
+                  </Modal>
+                </>
+              ),
+            },
+            {
+              key: '2',
+              label: '物品销售',
+              children: (
+                <>
+                  <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button type="primary" onClick={() => setGoodsSaleModalOpen(true)}>
+                      添加销售记录
+                    </Button>
+                  </div>
+                  <Table
+                    dataSource={goodsSales}
+                    columns={goodsSaleColumns}
+                    rowKey="id"
+                    pagination={{ pageSize: 10 }}
+                  />
+                  <Modal open={goodsSaleModalOpen} title="添加销售" onCancel={() => setGoodsSaleModalOpen(false)} onOk={handleAddGoodsSale} destroyOnHidden>
+                    <Form form={goodsSaleForm} layout="vertical">
+                      <Form.Item label="销售事项" name="item" rules={[{ required: true, message: '请输入事项' }]}><Input /></Form.Item>
+                      <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+                      <Form.Item label="销售日期" name="saleDate" rules={[{ required: true, message: '请选择日期' }]}>
+                        <DatePicker style={{ width: '100%' }} />
+                      </Form.Item>
+                    </Form>
+                  </Modal>
+                </>
+              ),
+            },
+            {
+              key: '3',
+              label: '小猫销售',
+              children: (
+                <>
+                  <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button type="primary" onClick={() => setKittenSaleModalOpen(true)}>
+                      添加销售记录
+                    </Button>
+                  </div>
+                  <Table
+                    dataSource={kittenSales}
+                    columns={kittenSaleColumns}
+                    rowKey="id"
+                    pagination={{ pageSize: 10 }}
+                  />
+                  <Modal open={kittenSaleModalOpen} title="添加小猫销售" onCancel={() => setKittenSaleModalOpen(false)} onOk={handleAddKittenSale} destroyOnHidden>
+                    <Form form={kittenSaleForm} layout="vertical">
+                      <Form.Item label="猫咪" name="kittenId" rules={[{ required: true, message: '请选择猫咪' }]}> 
+                        <Select showSearch filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}>
+                          {cats.map(cat => <Option key={cat.id} value={cat.id}>{cat.name}</Option>)}
+                        </Select>
+                      </Form.Item>
+                      <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+                      <Form.Item label="销售日期" name="saleDate" rules={[{ required: true, message: '请选择日期' }]}>
+                        <DatePicker style={{ width: '100%' }} />
+                      </Form.Item>
+                    </Form>
+                  </Modal>
+                </>
+              ),
+            },
+          ]}/>
         </Card>
-
-        {/* 采购添加表单 */}
-        <Modal open={purchaseModalOpen} title="添加采购" onCancel={() => setPurchaseModalOpen(false)} onOk={handleAddPurchase} destroyOnClose>
-          <Form form={purchaseForm} layout="vertical">
-            <Form.Item label="采购事项" name="item" rules={[{ required: true, message: '请输入事项' }]}><Input /></Form.Item>
-            <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
-            <Form.Item label="是否单猫支出" name="isSingleCat">
-              <Select>
-                <Option value={true}>是</Option>
-                <Option value={false}>否</Option>
-              </Select>
-            </Form.Item>
-            <Form.Item noStyle shouldUpdate={(prev, curr) => prev.isSingleCat !== curr.isSingleCat}>
-              {({ getFieldValue }) =>
-                getFieldValue('isSingleCat') === true || getFieldValue('isSingleCat') === 'true' ? (
-                  <Form.Item label="对应猫咪" name="catId" rules={[{ required: true, message: '请选择猫咪' }]}> 
-                    <Select showSearch filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}>
-                      {cats.map(cat => <Option key={cat.id} value={cat.id}>{cat.name}</Option>)}
-                    </Select>
-                  </Form.Item>
-                ) : null
-              }
-            </Form.Item>
-            <Form.Item label="采购日期" name="purchaseDate" rules={[{ required: true, message: '请选择日期' }]}>
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-          </Form>
-        </Modal>
-
-        {/* 物品销售添加表单 */}
-        <Modal open={goodsSaleModalOpen} title="添加销售" onCancel={() => setGoodsSaleModalOpen(false)} onOk={handleAddGoodsSale} destroyOnClose>
-          <Form form={goodsSaleForm} layout="vertical">
-            <Form.Item label="销售事项" name="item" rules={[{ required: true, message: '请输入事项' }]}><Input /></Form.Item>
-            <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
-            <Form.Item label="销售日期" name="saleDate" rules={[{ required: true, message: '请选择日期' }]}>
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-          </Form>
-        </Modal>
-
-        {/* 小猫销售添加表单 */}
-        <Modal open={kittenSaleModalOpen} title="添加小猫销售" onCancel={() => setKittenSaleModalOpen(false)} onOk={handleAddKittenSale} destroyOnClose>
-          <Form form={kittenSaleForm} layout="vertical">
-            <Form.Item label="猫咪" name="kittenId" rules={[{ required: true, message: '请选择猫咪' }]}> 
-              <Select showSearch filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}>
-                {cats.map(cat => <Option key={cat.id} value={cat.id}>{cat.name}</Option>)}
-              </Select>
-            </Form.Item>
-            <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
-            <Form.Item label="销售日期" name="saleDate" rules={[{ required: true, message: '请选择日期' }]}>
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-          </Form>
-        </Modal>
       </div>
     </DashboardLayout>
   );

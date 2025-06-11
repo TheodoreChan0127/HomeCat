@@ -26,11 +26,14 @@ export function PregnancyModal({
   const calculateReminderDates = (matingDate: Dayjs) => {
     const settings = getPregnancySettings();
     const expectedDeliveryDate = matingDate.add(settings.pregnancyDuration, 'day');
-    const dates: { [key: string]: Dayjs } = {
-      expectedDeliveryDate
+    const dates: { [key: string]: Dayjs | null } = {
+      expectedDeliveryDate,
+      reminder7Days: null,
+      reminder3Days: null,
+      reminder1Day: null
     };
 
-    if (settings.enableReminders) {
+    if (settings.enableReminders === true) {
       // 使用固定的提醒天数
       const reminderDays = [7, 3, 1];
       reminderDays.forEach(days => {
@@ -77,11 +80,11 @@ export function PregnancyModal({
       const payload = {
         ...values,
         catId: catId || 0,
-        matingDate: values.matingDate?.toISOString(),
-        expectedDeliveryDate: values.expectedDeliveryDate?.toISOString(),
-        reminder7Days: values.reminder7Days?.toISOString(),
-        reminder3Days: values.reminder3Days?.toISOString(),
-        reminder1Day: values.reminder1Day?.toISOString()
+        matingDate: values.matingDate?.toISOString() || null,
+        expectedDeliveryDate: values.expectedDeliveryDate?.toISOString() || null,
+        reminder7Days: values.reminder7Days ? values.reminder7Days.toISOString() : null,
+        reminder3Days: values.reminder3Days ? values.reminder3Days.toISOString() : null,
+        reminder1Day: values.reminder1Day ? values.reminder1Day.toISOString() : null
       };
       
       if (editingRecord) {

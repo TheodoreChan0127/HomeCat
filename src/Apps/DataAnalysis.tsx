@@ -1,4 +1,4 @@
-import { Select, Card, Row, Col, Typography } from 'antd'
+import { Select, Card } from 'antd'
 import React, { useState } from 'react'
 import DashboardLayout from '../components/dashboard'
 import { AnalysisData } from '../Types/analysis'
@@ -34,7 +34,7 @@ function DataAnalysis() {
         
         <Card 
           className="hover:shadow-md transition-shadow duration-300"
-          bodyStyle={{ padding: '24px' }}
+          styles= {{body: { padding: '24px' }}}
         >
           <div className="flex justify-between items-center mb-6">
             <Select 

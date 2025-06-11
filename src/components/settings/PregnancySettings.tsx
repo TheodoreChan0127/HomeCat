@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { Form, InputNumber, Switch, Card, message } from 'antd';
+import { Form, InputNumber, Switch, Card } from 'antd';
 import { getPregnancySettings, savePregnancySettings } from '../../config/pregnancySettings';
+import { useMessage } from '../../hooks/useMessage';
 
 const PregnancySettings: React.FC = () => {
   const [form] = Form.useForm();
+  const { messageApi, contextHolder } = useMessage();
   const [settings, setSettings] = useState({
-    pregnancyDuration: 63,
-    enableReminders: true
+    pregnancyDuration: 63, // 默认怀孕天数
+    enableReminders: true, // 是否启用怀孕提醒
   });
 
   useEffect(() => {
@@ -23,44 +25,48 @@ const PregnancySettings: React.FC = () => {
     }
   };
 
-  const handleValuesChange = (changedValues: any, allValues: any) => {
+  const handleValuesChange = (changedValues: any, _allValues: any) => {
     const newSettings = {
       ...settings,
       ...changedValues
     };
     setSettings(newSettings);
     savePregnancySettings(newSettings);
-    message.success('设置已保存');
+    messageApi.success('设置已保存');
   };
 
   return (
-    <Card>
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={settings}
-        onValuesChange={handleValuesChange}
-      >
-        <Form.Item
-          label="怀孕周期（天）"
-          name="pregnancyDuration"
-          rules={[
-            { required: true, message: '请输入怀孕周期' },
-            { type: 'number', min: 1, message: '怀孕周期必须大于0' }
-          ]}
+    <>
+      {contextHolder}
+      <Card>
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={settings}
+          onValuesChange={handleValuesChange}
         >
-          <InputNumber min={1} />
-        </Form.Item>
+          <Form.Item
+            label="默认怀孕天数"
+            name="pregnancyDuration"
+            rules={[
+              { required: true, message: '请输入默认怀孕天数' },
+              { type: 'number', min: 1, message: '天数必须大于0' }
+            ]}
+          >
+            <InputNumber min={1} style={{ width: '100%' }} />
+          </Form.Item>
 
-        <Form.Item
-          label="启用提醒"
-          name="enableReminders"
-          valuePropName="checked"
-        >
-          <Switch />
-        </Form.Item>
-      </Form>
-    </Card>
+          <Form.Item
+            label="启用怀孕提醒"
+            name="enablePregnancyReminder"
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+
+        </Form>
+      </Card>
+    </>
   );
 };
 

@@ -404,7 +404,14 @@ return (
                           <Button type="link" danger onClick={() => handleDelete('illness', illness.id)}>删除</Button>
                         ]}
                       >
-                        {`第${illnessRecords.length - index}次记录 - ${illness.illnessName}（治疗：${illness.treatmentMethod}）`}
+                        <div style={{ 
+                          opacity: illness.isCured ? 0.6 : 1,
+                          textDecoration: illness.isCured ? 'line-through' : 'none',
+                          color: illness.isCured ? '#999' : 'inherit'
+                        }}>
+                          {`第${illnessRecords.length - index}次记录 - ${illness.illnessName}（治疗：${illness.treatmentMethod}）`}
+                          {illness.isCured && <span style={{ marginLeft: 8, color: '#52c41a' }}>[已痊愈]</span>}
+                        </div>
                       </List.Item>
                     )}
                   />

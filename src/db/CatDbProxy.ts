@@ -11,6 +11,7 @@ import { Purchase } from "../entity/Purchase";
 import { GoodsSale } from "../entity/GoodsSale";
 import { KittenSale } from "../entity/KittenSale";
 import { TableName, dbTables } from "../Types/database";
+import { Todo } from "../entity/Todo";
 
 interface GetCatsParams {
   currentPage: number;
@@ -603,6 +604,7 @@ export class CatDbProxy {
             await dbTables.weightRecords.clear();
             await dbTables.purchases.clear();
             await dbTables.kittenSales.clear();
+            await dbTables.todos.clear();
             await dbTables.cats.clear();
             break;
           case "purchases":
@@ -629,6 +631,13 @@ export class CatDbProxy {
             );
             await dbTables.kittenSales.clear();
             break;
+          case "todos":
+            // 清空TODO表
+            await dbTables.todos.clear();
+            break;
+          default:
+            // 清空其他表
+            await dbTables[tableName].clear();
         }
       });
     } catch (error) {
@@ -653,6 +662,7 @@ export class CatDbProxy {
         await dbTables.purchases.clear();
         await dbTables.goodsSales.clear();
         await dbTables.kittenSales.clear();
+        await dbTables.todos.clear();
         // 最后清空猫咪表
         await dbTables.cats.clear();
       });
@@ -674,5 +684,66 @@ export class CatDbProxy {
         `导出表数据失败: ${error instanceof Error ? error.message : "未知错误"}`
       );
     }
+  }
+
+  // TODO相关方法
+  public static async addTodo(todo: Todo): Promise<number> {
+    return await db.todos.add(todo);
+  }
+
+  public static async getPendingTodos(): Promise<Todo[]> {
+    return await db.todos.where("status").equals("pending").toArray();
+  }
+
+  public static async completeTodo(id: number): Promise<void> {
+    await db.todos.update(id, {
+      status: "completed",
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  // 获取猫咪最新的生病记录
+  public async getLatestIllnessByCatId(catId: number): Promise<Illness | null> {
+    const illnesses = await CatDbProxy.getIllnessesByCatId(catId);
+    return illnesses.length > 0 ? illnesses[illnesses.length - 1] : null;
+  }
+
+  // 获取猫咪最新的疫苗记录
+  public async getLatestVaccinationByCatId(
+    catId: number
+  ): Promise<VaccinationRecord | null> {
+    const vaccinations = await CatDbProxy.getVaccinationsByCatId(catId);
+    return vaccinations.length > 0
+      ? vaccinations[vaccinations.length - 1]
+      : null;
+  }
+
+  // 获取猫咪最新的体外驱虫记录
+  public async getLatestExternalDewormingByCatId(
+    catId: number
+  ): Promise<ExternalDeworming | null> {
+    const dewormings = await CatDbProxy.getExternalDewormingsByCatId(catId);
+    return dewormings.length > 0 ? dewormings[dewormings.length - 1] : null;
+  }
+
+  // 获取猫咪最新的体内驱虫记录
+  public async getLatestInternalDewormingByCatId(
+    catId: number
+  ): Promise<InternalDeworming | null> {
+    const dewormings = await CatDbProxy.getInternalDewormingsByCatId(catId);
+    return dewormings.length > 0 ? dewormings[dewormings.length - 1] : null;
+  }
+
+  // 获取猫咪最新的怀孕记录
+  public async getLatestPregnancyByCatId(
+    catId: number
+  ): Promise<Pregnant | null> {
+    const pregnancies = await CatDbProxy.getPregnanciesByCatId(catId);
+    return pregnancies.length > 0 ? pregnancies[pregnancies.length - 1] : null;
+  }
+
+  // 获取指定猫咪的所有TODO
+  public static async getTodosByCatId(catId: number): Promise<Todo[]> {
+    return await db.todos.where("catId").equals(catId).toArray();
   }
 }

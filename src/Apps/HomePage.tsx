@@ -1,12 +1,17 @@
-import React,{ JSX } from "react"
+import React, { JSX } from "react"
 import DashboardLayout from "../components/dashboard"
+import { ReminderTodoView } from '../components/ReminderTodoView';
+import PageTitle from "../components/PageTitle";
 
 function HomePage(): JSX.Element {
-
   return (
-    <DashboardLayout> {/* 包裹页面内容 */}
+    <DashboardLayout>
       <div className="p-4">
-        <h1 className="text-xl font-semibold">首页</h1>
+        <PageTitle 
+          title="首页" 
+          subtitle="猫舍数据总览"
+        />
+        <ReminderTodoView />
       </div>
     </DashboardLayout>
   )
