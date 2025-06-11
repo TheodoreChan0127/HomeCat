@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-named-as-default
-import Dexie from "dexie";
+import Dexie, { Table } from "dexie";
 import { Cat } from "../entity/Cat";
 import { ExternalDeworming } from "../entity/ExternalDeworming";
 import { Illness } from "../entity/Illness";
@@ -7,15 +7,21 @@ import { InternalDeworming } from "../entity/InternalDeworming";
 import { Pregnant } from "../entity/Pregnant";
 import { VaccinationRecord } from "../entity/VaccinationRecord";
 import { WeightRecord } from "../entity/WeightRecord";
+import { Purchase } from "../entity/Purchase";
+import { GoodsSale } from "../entity/GoodsSale";
+import { KittenSale } from "../entity/KittenSale";
 
 export class DBManager extends Dexie {
-  cats: Dexie.Table<Cat, number>;
+  cats!: Table<Cat, number>;
   externalDewormings: Dexie.Table<ExternalDeworming, number>;
   internalDewormings: Dexie.Table<InternalDeworming, number>;
   illnesses: Dexie.Table<Illness, number>;
   pregnancies: Dexie.Table<Pregnant, number>;
   vaccinationRecords: Dexie.Table<VaccinationRecord, number>;
   weightRecords: Dexie.Table<WeightRecord, number>;
+  purchases!: Table<Purchase, number>;
+  goodsSales!: Table<GoodsSale, number>;
+  kittenSales!: Table<KittenSale, number>;
 
   constructor() {
     super("HomeCatDB");
@@ -28,14 +34,20 @@ export class DBManager extends Dexie {
       pregnancies: "++id, catId, matingDate, expectedDeliveryDate", // Changed from "++id, Id, matingDate, expectedDeliveryDate"
       vaccinationRecords: "++id, catId, injectionDate", // Changed from "++id, Id, injectionDate"
       weightRecords: "++id, catId, weighDate", // Changed from "++id, Id, weighDate"
+      purchases:
+        "++id, itemName, amount, purchaseDate, catId, createdAt, updatedAt",
+      goodsSales: "++id, itemName, amount, saleDate, createdAt, updatedAt",
+      kittenSales: "++id, catId, amount, saleDate, createdAt, updatedAt",
     });
-    this.cats = this.table("cats");
     this.externalDewormings = this.table("externalDewormings");
     this.internalDewormings = this.table("internalDewormings");
     this.illnesses = this.table("illnesses");
     this.pregnancies = this.table("pregnancies");
     this.vaccinationRecords = this.table("vaccinationRecords");
     this.weightRecords = this.table("weightRecords");
+    this.purchases = this.table("purchases");
+    this.goodsSales = this.table("goodsSales");
+    this.kittenSales = this.table("kittenSales");
   }
 }
 

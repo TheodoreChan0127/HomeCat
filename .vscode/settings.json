@@ -2,12 +2,17 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
-  
+    "files.encoding": "utf8"
   },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": true,
+  "[typescriptreact]": {
+    "files.encoding": "utf8"
   }
 }

@@ -9,14 +9,15 @@ interface DashboardLayoutProps {
   children: React.ReactNode // 允许子组件内容
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps): JSX.Element {
+export default function DashboardLayout({ children }: DashboardLayoutProps): JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
   const pathToKey: { [key: string]: string } = {
     '/': '0',
     '/cat-profile': '1',
-    '/reminder-settings': '2',
-    '/data-analysis': '3'
+    '/settings': '2',
+    '/data-analysis': '3',
+    '/finance': '4'
   }
   const currentKey = pathToKey[location.pathname] || '0'
   const [collapsed, setCollapsed] = React.useState(false)
@@ -33,8 +34,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps): JSX.Element
   items={[
     { key: '0', label: '回到首页', onClick: () => navigate('/') },
     { key: '1', label: '猫咪档案', onClick: () => navigate('/cat-profile') },
-    { key: '2', label: '提醒设置', onClick: () => navigate('/reminder-settings') },
-    { key: '3', label: '数据分析', onClick: () => navigate('/data-analysis') }
+    { key: '2', label: '设置', onClick: () => navigate('/settings') },
+    { key: '3', label: '数据分析', onClick: () => navigate('/data-analysis') },
+    { key: '4', label: '收支管理', onClick: () => navigate('/finance') }
   ]}
 />
       </Sider>

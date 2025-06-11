@@ -1,14 +1,15 @@
-import { Button, Card, Input, message, Select, Space} from 'antd'
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
+import { Button, Card, Input, message, Select, Space } from 'antd'
+import { PlusOutlined, SearchOutlined, TeamOutlined } from '@ant-design/icons'
 import { JSX } from 'react/jsx-runtime'
 import React,{ useState, useCallback, useEffect } from 'react'
-import { DashboardLayout } from '../components/dashboard'
+import DashboardLayout from '../components/dashboard'
 import { Cat } from '../entity/Cat'
 import { CatDbProxy } from '../db/CatDbProxy'
 import AddCatModal from '../components/AddCatModal'
 import { clearBreeds, getBreeds } from '../config/breeds'
 import CatDetailModal from '../components/CatDetailModal'
 import PetStatusModal from '../components/PetStatusModal'
+import PageTitle from '../components/PageTitle'
 
 
 // Remove unused CatProfileProps interface
@@ -120,98 +121,124 @@ const handleClearAll = useCallback(async () => {
       }}
       cat={selectedCat}
       />
-      <div className="p-4 flex flex-col h-full">
-        {/* 顶部筛选栏 */}
-        <Card className="mb-4">
-          <Space size="middle">
-            <Input 
-              placeholder="搜索猫咪名称" 
-              prefix={<SearchOutlined />} 
-              value={filters.name}
-              onChange={(e) => setFilters({...filters, name: e.target.value})}
-            />
-            <Select
-              placeholder="品种"
-              style={{ width: 120 }}
-              options={breeds.map(breed => ({ value: breed, label: breed }))}
-              value={filters.breed}
-              onChange={(value) => setFilters({...filters, breed: value})}
-            />
-            <Button onClick={() => {
-              setFilters({ name: '', breed: '', isPregnant: undefined, isSick: undefined, isVaccinated: undefined, isDewormed: undefined })
-              fetchCats()
-            }}>清空筛选</Button>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />} 
-              onClick={handleAddCat}
-            >添加猫咪</Button>
-            
-            {/* 新增清除按钮 */}
-            <Button 
-              type="primary" 
-              danger
-              onClick={handleClearAll}
-            >一键清空数据</Button>
-          </Space>
-        </Card>
+      <div className="h-screen flex flex-col">
+        <div className="p-6 max-w-6xl mx-auto flex-1 w-full flex flex-col">
+          <PageTitle 
+            title="猫咪管理" 
+            subtitle="管理所有猫咪的信息和状态"
+            icon={<TeamOutlined />}
+          />
 
-        {/* 猫咪卡片列表 */}
-        <div style={{ flex: 1, overflow: 'auto' }}>
-        <div>
-        {currentCats.map((cat) => (
-          <div key={cat.id} style={{ padding: '8px' }}>
-            <Card hoverable>
-            <div className="flex items-center h-full p-4"> 
-              <div className="flex-grow" onClick={() => { 
-                setSelectedCat(cat) 
-                setIsDetailModalVisible(true) 
-              }}> 
-                <h3 className="text-lg font-medium">{cat.name}</h3> 
-                <p className="text-gray-600">{cat.breed} · {cat.age}岁</p> 
-              </div> 
-              <Button 
-                type="primary" 
-                className="ml-auto whitespace-nowrap"
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  setSelectedCat(cat); 
-                  setIsStatusModalVisible(true); 
-                }} 
-              > 
-                查看状态 
-              </Button> 
-            </div>
+          {/* 顶部筛选栏 */}
+          <Card 
+            className="mb-6 hover:shadow-md transition-shadow duration-300"
+            bodyStyle={{ padding: '16px' }}
+          >
+            <Space size="middle" style={{ width: '100%', justifyContent: 'space-between' }}>
+              <Space size="middle">
+                <Input 
+                  placeholder="搜索猫咪名称" 
+                  prefix={<SearchOutlined />} 
+                  value={filters.name}
+                  onChange={(e) => setFilters({...filters, name: e.target.value})}
+                  style={{ width: 200 }}
+                />
+                <Select
+                  placeholder="品种"
+                  style={{ width: 120 }}
+                  options={breeds.map(breed => ({ value: breed, label: breed }))}
+                  value={filters.breed}
+                  onChange={(value) => setFilters({...filters, breed: value})}
+                />
+                <Button onClick={() => {
+                  setFilters({ name: '', breed: '', isPregnant: undefined, isSick: undefined, isVaccinated: undefined, isDewormed: undefined })
+                  fetchCats()
+                }}>清空筛选</Button>
+              </Space>
+              <Space>
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />} 
+                  onClick={handleAddCat}
+                >
+                  添加猫咪
+                </Button>
+                <Button 
+                  type="primary" 
+                  danger
+                  onClick={handleClearAll}
+                >
+                  一键清空数据
+                </Button>
+              </Space>
+            </Space>
           </Card>
-          </div>
-          ))}
-  </div>
-</div>
 
-{/* 分页控件 */}
-<Card className="mt-auto flex justify-center items-center">
-  <Space className="self-center flex justify-center" size="middle" align='center'>
-    <Button 
-      disabled={currentPage === 1}
-      onClick={async () => {
-        setCurrentPage(prev => Math.max(1, prev - 1))
-        await fetchCats()
-      }}
-    >
-      上一页
-    </Button>
-    <span>第 {currentPage} 页 / 共 {totalPages} 页</span>
-    <Button 
-      disabled={currentPage === totalPages}
-      onClick={async () => {
-        setCurrentPage(prev => Math.min(totalPages, prev + 1))
-        await fetchCats()
-      }}
-    >
-      下一页
-    </Button>
-  </Space>
-</Card>
+          {/* 猫咪卡片列表 */}
+          <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {currentCats.map((cat) => (
+                <Card 
+                  key={cat.id} 
+                  hoverable
+                  className="hover:shadow-lg transition-shadow duration-300"
+                >
+                  <div className="flex items-center justify-between p-4"> 
+                    <div 
+                      className="flex-grow cursor-pointer" 
+                      onClick={() => { 
+                        setSelectedCat(cat) 
+                        setIsDetailModalVisible(true) 
+                      }}
+                    > 
+                      <h3 className="text-lg font-medium mb-1">{cat.name}</h3> 
+                      <p className="text-gray-600 text-sm">{cat.breed} · {cat.age}岁</p> 
+                    </div> 
+                    <Button 
+                      type="primary" 
+                      size="small"
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setSelectedCat(cat); 
+                        setIsStatusModalVisible(true); 
+                      }} 
+                    > 
+                      查看状态 
+                    </Button> 
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* 分页控件 - 固定在底部 */}
+          <Card 
+            className="mt-6 sticky bottom-0 bg-white shadow-md"
+            bodyStyle={{ padding: '12px' }}
+          >
+            <Space className="w-full flex justify-center" size="middle" align='center'>
+              <Button 
+                disabled={currentPage === 1}
+                onClick={async () => {
+                  setCurrentPage(prev => Math.max(1, prev - 1))
+                  await fetchCats()
+                }}
+              >
+                上一页
+              </Button>
+              <span>第 {currentPage} 页 / 共 {totalPages} 页</span>
+              <Button 
+                disabled={currentPage === totalPages}
+                onClick={async () => {
+                  setCurrentPage(prev => Math.min(totalPages, prev + 1))
+                  await fetchCats()
+                }}
+              >
+                下一页
+              </Button>
+            </Space>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   )

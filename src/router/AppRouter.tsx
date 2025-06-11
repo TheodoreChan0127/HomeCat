@@ -1,9 +1,10 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import HomePage from '../Apps/HomePage'
 import CatProfile from '../Apps/CatProfile'
-import ReminderSettings from '../Apps/ReminderSettings'
 import DataAnalysis from '../Apps/DataAnalysis'
 import React, { JSX } from 'react'
+import Settings from '../Apps/Settings'
+import Finance from '../Apps/Finance'
 
 
 const AppRouter = (): JSX.Element => {
@@ -13,8 +14,9 @@ const AppRouter = (): JSX.Element => {
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/cat-profile" element={<CatProfile />} />
-        <Route path="/reminder-settings" element={<ReminderSettings />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/data-analysis" element={<DataAnalysis />} />
+        <Route path="/finance" element={<Finance />} />
       </Routes>
     </Router>
   )

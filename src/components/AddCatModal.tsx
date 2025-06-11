@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React,{ JSX, useState, useEffect } from "react"
-import { getBreeds, saveBreeds } from '../config/breeds'
+import { getBreeds } from '../config/breeds'
 import { CatDbProxy } from '../db/CatDbProxy'
-import { Modal, Form, Input, Select, DatePicker, Button } from 'antd'
+import { Modal, Form, Input, Select, DatePicker } from 'antd'
 
 interface AddCatModalProps {
   visible: boolean
@@ -12,6 +13,7 @@ interface AddCatModalProps {
 function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.Element {
   const [form] = Form.useForm()
   const [breeds, setBreeds] = useState<string[]>([]);
+  const [cats, setCats] = useState<any[]>([]);
 
   useEffect(() => {
     const loadBreeds = async () => {
@@ -19,6 +21,9 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
       setBreeds(breedList);
     };
     loadBreeds();
+
+    // 加载猫咪列表
+    CatDbProxy.getCats({ currentPage: 1, itemsPerPage: 100, filters: {} }).then(res => setCats(res.data));
   }, []);
 
   const handleSubmit = async (): Promise<void> => {
@@ -59,41 +64,17 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
         </Form.Item>
 
         <Form.Item
-  name="breed"
-  label="猫咪品种"
-  rules={[{ required: true, message: '请选择猫咪品种' }]}
->
-  <Select
-    placeholder="请选择猫咪品种"
-    style={{ width: 200 }}
-    options={breeds.map(breed => ({ value: breed, label: breed }))}
-    allowClear
-    showSearch
-  />
-        </Form.Item>
-
-        <Form.Item name="newBreedInput">
-            <Input
-              placeholder="输入新品种"
-              style={{ width: 200 }}
-            />
-            <Button 
-              type="primary"
-              onClick={() => {
-                const newBreed = form.getFieldValue('newBreedInput');
-                if (newBreed && !breeds.includes(newBreed)) {
-                  const newBreeds = [...breeds, newBreed];
-                  setBreeds(newBreeds);
-                  saveBreeds(newBreeds);
-                  form.setFieldsValue({ 
-                    breed: newBreed,
-                    newBreedInput: ''
-                  });
-                }
-              }}
-            >
-              添加品种
-            </Button>
+          name="breed"
+          label="猫咪品种"
+          rules={[{ required: true, message: '请选择猫咪品种' }]}
+        >
+          <Select
+            placeholder="请选择猫咪品种"
+            style={{ width: 200 }}
+            options={breeds.map(breed => ({ value: breed, label: breed }))}
+            allowClear
+            showSearch
+          />
         </Form.Item>
 
         <Form.Item
@@ -107,17 +88,33 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
         <Form.Item
           name="fatherId"
           label="父ID"
-          rules={[{ message: '请输入有效父ID' }]}
-        >
-          <Input placeholder="请输入父ID（可选）" min={0} />
+        > 
+          <Select
+            showSearch
+            allowClear
+            placeholder="请选择父猫（可选）"
+            filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}
+          >
+            {cats.map(cat => (
+              <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item
           name="motherId"
           label="母ID"
-          rules={[{ message: '请输入有效母ID' }]}
         >
-          <Input placeholder="请输入母ID（可选）" min={0} />
+          <Select
+            showSearch
+            allowClear
+            placeholder="请选择母猫（可选）"
+            filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}
+          >
+            {cats.map(cat => (
+              <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item
@@ -164,11 +161,8 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
         >
           <Input placeholder="请输入体重（可选）" min={0} />
         </Form.Item>
-
-        </Form>
-
+      </Form>
     </Modal>
-
   )
 }
 
