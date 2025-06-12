@@ -4,7 +4,7 @@ import { Cat } from '../entity/Cat'
 import { CatDbProxy } from '../db/CatDbProxy'
 import { AnimalType } from '../Types/Enum'
 import dayjs from 'dayjs';
-import { getBreeds } from '../config/breeds'
+import { getBreeds } from '../config/breedSettings'
 
 interface CatDetailModalProps {
   visible: boolean

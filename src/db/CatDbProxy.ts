@@ -133,6 +133,7 @@ export class CatDbProxy {
           db.externalDewormings,
           db.pregnancies, // 补充怀孕记录关联表
           db.weightRecords, // 补充体重记录关联表
+          db.todos, // 新增待办事项关联表
         ],
         async () => {
           // 修正外键查询条件为catId
@@ -142,6 +143,8 @@ export class CatDbProxy {
           await db.externalDewormings.where("catId").equals(id).delete();
           await db.pregnancies.where("catId").equals(id).delete(); // 新增怀孕记录删除
           await db.weightRecords.where("catId").equals(id).delete(); // 新增体重记录删除
+          // 新增：删除与该猫咪关联的待办事项
+          await db.todos.where("catId").equals(id).delete();
           await db.cats.delete(id);
         }
       );
