@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "./DBManager";
 import { Cat } from "../entity/Cat";
@@ -12,6 +13,7 @@ import { GoodsSale } from "../entity/GoodsSale";
 import { KittenSale } from "../entity/KittenSale";
 import { TableName, dbTables } from "../Types/database";
 import { Todo } from "../entity/Todo";
+import { MonthlyStats } from "../entity/MonthlyStats";
 
 interface GetCatsParams {
   currentPage: number;
@@ -449,6 +451,7 @@ export class CatDbProxy {
           );
         }
       }
+      await this.updateMonthlyStats();
       return purchaseId;
     } catch (error) {
       console.error(
@@ -492,6 +495,7 @@ export class CatDbProxy {
         );
       }
     }
+    await this.updateMonthlyStats();
   }
 
   // 物品销售相关
@@ -505,6 +509,7 @@ export class CatDbProxy {
 
   public static async deleteGoodsSale(id: number): Promise<void> {
     await db.goodsSales.delete(id);
+    await this.updateMonthlyStats();
   }
 
   // 小猫销售相关
@@ -533,6 +538,7 @@ export class CatDbProxy {
         }
       }
     }
+    await this.updateMonthlyStats();
     return saleId;
   }
 
@@ -568,6 +574,7 @@ export class CatDbProxy {
         }
       }
     }
+    await this.updateMonthlyStats();
   }
 
   // 获取表信息
@@ -745,5 +752,88 @@ export class CatDbProxy {
   // 获取指定猫咪的所有TODO
   public static async getTodosByCatId(catId: number): Promise<Todo[]> {
     return await db.todos.where("catId").equals(catId).toArray();
+  }
+
+  // 更新月度统计数据
+  public static async updateMonthlyStats(): Promise<void> {
+    try {
+      const purchases = await this.getPurchases();
+      const goodsSales = await this.getGoodsSales();
+      const kittenSales = await this.getKittenSales();
+
+      // 按年月分组统计数据
+      const statsMap = new Map<string, MonthlyStats>();
+
+      // 处理采购数据
+      purchases.forEach((purchase) => {
+        const date = new Date(purchase.purchaseDate);
+        const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        if (!statsMap.has(key)) {
+          const stats = new MonthlyStats();
+          stats.year = date.getFullYear();
+          stats.month = date.getMonth() + 1;
+          statsMap.set(key, stats);
+        }
+        statsMap.get(key)!.totalExpense += purchase.amount;
+      });
+
+      // 处理物品销售数据
+      goodsSales.forEach((sale) => {
+        const date = new Date(sale.saleDate);
+        const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        if (!statsMap.has(key)) {
+          const stats = new MonthlyStats();
+          stats.year = date.getFullYear();
+          stats.month = date.getMonth() + 1;
+          statsMap.set(key, stats);
+        }
+        statsMap.get(key)!.totalIncome += sale.amount;
+      });
+
+      // 处理小猫销售数据
+      kittenSales.forEach((sale) => {
+        const date = new Date(sale.saleDate);
+        const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        if (!statsMap.has(key)) {
+          const stats = new MonthlyStats();
+          stats.year = date.getFullYear();
+          stats.month = date.getMonth() + 1;
+          statsMap.set(key, stats);
+        }
+        statsMap.get(key)!.totalIncome += sale.amount;
+        statsMap.get(key)!.kittenCount += 1;
+      });
+
+      // 清空现有统计数据
+      await db.monthlyStats.clear();
+
+      // 保存新的统计数据
+      await db.monthlyStats.bulkAdd(Array.from(statsMap.values()));
+    } catch (error) {
+      console.error("更新月度统计数据失败:", error);
+      throw new Error(
+        `更新月度统计数据失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`
+      );
+    }
+  }
+
+  // 获取月度统计数据
+  public static async getMonthlyStats(year?: number): Promise<MonthlyStats[]> {
+    try {
+      let query = db.monthlyStats.orderBy(["year", "month"]);
+      if (year) {
+        query = query.filter((stats) => stats.year === year);
+      }
+      return await query.toArray();
+    } catch (error) {
+      console.error("获取月度统计数据失败:", error);
+      throw new Error(
+        `获取月度统计数据失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`
+      );
+    }
   }
 }

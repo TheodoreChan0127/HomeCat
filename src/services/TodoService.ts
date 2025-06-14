@@ -172,7 +172,7 @@ export class TodoService {
     const today = dayjs();
     const daysUntilBirthday = nextBirthday.diff(today, "day");
 
-    if (daysUntilBirthday <= interval) {
+    if (daysUntilBirthday == interval) {
       await this.createTodo(
         cat.id,
         `[年龄提醒] ${cat.name} 即将迎来 ${
@@ -307,7 +307,7 @@ export class TodoService {
         const today = dayjs();
 
         // 检查7天提醒
-        if (reminder7Day.diff(today, "day") <= 0) {
+        if (reminder7Day.diff(today, "day") == 0) {
           await this.createTodo(
             cat.id,
             `[预产提醒] ${
@@ -316,7 +316,7 @@ export class TodoService {
           );
         }
         // 检查3天提醒
-        if (reminder3Day.diff(today, "day") <= 0) {
+        if (reminder3Day.diff(today, "day") == 0) {
           await this.createTodo(
             cat.id,
             `[预产提醒] ${
@@ -325,7 +325,7 @@ export class TodoService {
           );
         }
         // 检查1天提醒
-        if (reminder1Day.diff(today, "day") <= 0) {
+        if (reminder1Day.diff(today, "day") == 0) {
           await this.createTodo(
             cat.id,
             `[预产提醒] ${

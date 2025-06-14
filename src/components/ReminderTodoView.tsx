@@ -21,6 +21,7 @@ export const ReminderTodoView: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCatId, setSelectedCatId] = useState<number | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [modalTitle, setModalTitle] = useState('');
   const [currentTodo, setCurrentTodo] = useState<Todo | null>(null);
   const { showSuccess, showError } = useMessage();
@@ -40,9 +41,7 @@ export const ReminderTodoView: React.FC = () => {
       setModalTitle('体外驱虫记录');
     } else if (content.includes('[体内驱虫提醒]')) {
       setModalTitle('体内驱虫记录');
-    } else if (content.includes('[预产提醒]')) {
-      setModalTitle('怀孕记录');
-    } else {
+    }  else {
       // 对于其他类型的TODO，直接完成
       handleCompleteTodo(todo.id);
       return;

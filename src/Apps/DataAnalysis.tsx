@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import DashboardLayout from '../components/dashboard'
 import { AnalysisData } from '../Types/analysis'
 import { WeightAnalysis } from '../components/analysis/WeightAnalysis'
+import { FinanceAnalysis } from '../components/analysis/FinanceAnalysis'
 import PageTitle from '../components/PageTitle'
 
 const { Option } = Select
@@ -19,6 +20,8 @@ function DataAnalysis() {
     switch (selectedType) {
       case 'weight':
         return <WeightAnalysis data={analysisData} />
+      case 'finance':
+        return <FinanceAnalysis data={analysisData} />
       default:
         return null
     }
@@ -45,6 +48,7 @@ function DataAnalysis() {
               className="analysis-select"
             >
               <Option value="weight">体重趋势</Option>
+              <Option value="finance">财务分析</Option>
             </Select>
           </div>
           <div className="analysis-content">

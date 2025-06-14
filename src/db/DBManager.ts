@@ -11,6 +11,7 @@ import { Purchase } from "../entity/Purchase";
 import { GoodsSale } from "../entity/GoodsSale";
 import { KittenSale } from "../entity/KittenSale";
 import { Todo } from "../entity/Todo";
+import { MonthlyStats } from "../entity/MonthlyStats";
 
 export class DBManager extends Dexie {
   cats!: Table<Cat, number>;
@@ -24,25 +25,28 @@ export class DBManager extends Dexie {
   goodsSales!: Table<GoodsSale, number>;
   kittenSales!: Table<KittenSale, number>;
   todos!: Table<Todo, number>;
+  monthlyStats!: Table<MonthlyStats, number>;
 
   constructor() {
     super("HomeCatDB");
     this.version(1).stores({
-      cats: "++id, name, breed, age, isPregnant, isSick, isVaccinated, isDewormed, fatherId, motherId, color, birthDate, arrivalDate, totalIncome, totalExpense, weight",
-      // Add catId to all related stores:
-      externalDewormings: "++id, catId, dewormingDate, reminderDate",
-      internalDewormings: "++id, catId, dewormingDate, reminderDate",
-      illnesses: "++id, catId, illnessName, treatmentMethod",
+      cats: "++id, name, gender, breed, birthDate, fatherId, motherId, totalIncome, totalExpense",
+      externalDewormings:
+        "++id, catId, medicineName, dewormingDate, nextDewormingDate",
+      internalDewormings:
+        "++id, catId, medicineName, dewormingDate, nextDewormingDate",
+      illnesses: "++id, catId, name, startDate, endDate, cost, notes",
       pregnancies:
-        "++id, catId, matingDate, expectedDeliveryDate, reminder7Days, reminder3Days, reminder1Day, isDelivered, deliveryCount, notes",
-      vaccinationRecords: "++id, catId, injectionDate",
-      weightRecords: "++id, catId, weighDate",
-      purchases:
-        "++id, itemName, amount, purchaseDate, catId, createdAt, updatedAt",
-      goodsSales: "++id, itemName, amount, saleDate, createdAt, updatedAt",
-      kittenSales: "++id, catId, amount, saleDate, createdAt, updatedAt",
-      todos:
-        "++id, catId, reminderId, title, description, dueDate, status, created_at, updated_at",
+        "++id, catId, startDate, endDate, expectedDeliveryDate, actualDeliveryDate, kittenCount, notes",
+      vaccinationRecords:
+        "++id, catId, vaccineName, vaccinationDate, nextVaccinationDate",
+      weightRecords: "++id, catId, weight, recordDate",
+      purchases: "++id, item, amount, isSingleCat, catId, purchaseDate",
+      goodsSales: "++id, item, amount, saleDate",
+      kittenSales: "++id, kittenId, amount, saleDate",
+      todos: "++id, title, description, dueDate, completed, priority",
+      monthlyStats:
+        "++id, year, month, totalIncome, totalExpense, kittenCount, [year+month]",
     });
     this.externalDewormings = this.table("externalDewormings");
     this.internalDewormings = this.table("internalDewormings");
@@ -54,6 +58,7 @@ export class DBManager extends Dexie {
     this.goodsSales = this.table("goodsSales");
     this.kittenSales = this.table("kittenSales");
     this.todos = this.table("todos");
+    this.monthlyStats = this.table("monthlyStats");
   }
 }
 

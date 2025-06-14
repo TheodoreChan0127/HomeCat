@@ -200,9 +200,18 @@ function Finance() {
 
   // 总览统计逻辑，依赖数据变化自动刷新
   const overviewStats = useMemo(() => {
+    // 计算商品销售总收入
     const goodsSalesTotal = goodsSales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
-    const totalIncome = cats.reduce((sum, cat) => sum + (cat.totalIncome || 0), 0) + goodsSalesTotal;
-    const totalExpense = cats.reduce((sum, cat) => sum + (cat.totalExpense || 0), 0);
+    // 计算小猫销售总收入
+    const kittenSalesTotal = kittenSales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
+    // 总收入 = 商品销售 + 小猫销售
+    const totalIncome = goodsSalesTotal + kittenSalesTotal;
+
+    // 计算商品采购支出
+    const purchaseExpense = purchases.reduce((sum, purchase) => sum + (purchase.amount || 0), 0);
+    // 总支出 = 商品采购支出
+    const totalExpense = purchaseExpense;
+
     const currentMonth = dayjs().format('YYYY-MM');
     const kittenSalesThisMonth = kittenSales.filter(sale => sale.saleDate.startsWith(currentMonth));
     const kittenSalesCountThisMonth = kittenSalesThisMonth.length;

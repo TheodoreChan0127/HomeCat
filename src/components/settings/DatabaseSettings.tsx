@@ -149,18 +149,20 @@ const DatabaseSettings: React.FC = () => {
       // 验证所有关联表的外键
       const relatedTables = ['externalDewormings', 'internalDewormings', 'illnesses', 'pregnancies', 'vaccinationRecords', 'weightRecords', 'kittenSales'];
       for (const table of relatedTables) {
-        console.log(`验证 ${table} 表的外键关系...`);
-        let invalidCount = 0;
-        for (const record of data[table]) {
-          if (!catIds.has(record.catId)) {
-            invalidCount++;
-            console.error(`${table} 表中发现无效的 catId: ${record.catId}`);
+        if (table in data) {  // 添加检查确保表存在
+          console.log(`验证 ${table} 表的外键关系...`);
+          let invalidCount = 0;
+          for (const record of data[table]) {
+            if (!catIds.has(record.catId)) {
+              invalidCount++;
+              console.error(`${table} 表中发现无效的 catId: ${record.catId}`);
+            }
           }
+          if (invalidCount > 0) {
+            throw new Error(`${table} 表中存在 ${invalidCount} 条无效的 catId 记录`);
+          }
+          console.log(`${table} 表外键验证通过`);
         }
-        if (invalidCount > 0) {
-          throw new Error(`${table} 表中存在 ${invalidCount} 条无效的 catId 记录`);
-        }
-        console.log(`${table} 表外键验证通过`);
       }
 
       // 导入数据
