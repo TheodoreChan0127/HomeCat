@@ -6,10 +6,10 @@ import DashboardLayout from '../components/dashboard'
 import { Cat } from '../entity/Cat'
 import { CatDbProxy } from '../db/CatDbProxy'
 import AddCatModal from '../components/AddCatModal'
-import { clearBreeds, getBreeds } from '../config/breeds'
 import CatDetailModal from '../components/CatDetailModal'
 import PetStatusModal from '../components/PetStatusModal'
 import PageTitle from '../components/PageTitle'
+import { getBreeds } from '../config/breedSettings'
 
 
 // Remove unused CatProfileProps interface
@@ -58,8 +58,6 @@ const loadBreeds = () => {
 const handleClearAll = useCallback(async () => {
   try {
     await CatDbProxy.deleteAll();
-    clearBreeds();
-
     // 重置分页和筛选状态
     setCurrentPage(1);
     setFilters({

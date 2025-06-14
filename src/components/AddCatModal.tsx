@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React,{ JSX, useState, useEffect } from "react"
-import { getBreeds } from '../config/breeds'
+import { getBreeds } from '../config/breedSettings'
 import { CatDbProxy } from '../db/CatDbProxy'
 import { Modal, Form, Input, Select, DatePicker } from 'antd'
 
