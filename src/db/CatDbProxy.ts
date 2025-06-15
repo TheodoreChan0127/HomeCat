@@ -21,6 +21,7 @@ interface GetCatsParams {
   filters: {
     name?: string;
     breed?: string;
+    gender?: "male" | "female";
     isPregnant?: boolean;
     isSick?: boolean;
     isVaccinated?: boolean;
@@ -39,13 +40,22 @@ export class CatDbProxy {
     const {
       currentPage,
       itemsPerPage,
-      filters: { name, breed, isPregnant, isSick, isVaccinated, isDewormed },
+      filters: {
+        name,
+        breed,
+        gender,
+        isPregnant,
+        isSick,
+        isVaccinated,
+        isDewormed,
+      },
     } = params;
 
     let query = db.cats.where("id").above(0);
 
     if (name) query = query.and((cat) => cat.name.includes(name));
     if (breed) query = query.and((cat) => cat.breed === breed);
+    if (gender) query = query.and((cat) => cat.gender === gender);
     if (isPregnant !== undefined)
       query = query.and((cat) => cat.isPregnant === isPregnant);
     if (isSick !== undefined) query = query.and((cat) => cat.isSick === isSick);

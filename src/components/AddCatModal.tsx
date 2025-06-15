@@ -2,7 +2,8 @@
 import React,{ JSX, useState, useEffect } from "react"
 import { getBreeds } from '../config/breedSettings'
 import { CatDbProxy } from '../db/CatDbProxy'
-import { Modal, Form, Input, Select, DatePicker } from 'antd'
+import { Modal, Form, Input, Select, DatePicker, Radio } from 'antd'
+import dayjs from 'dayjs'
 
 interface AddCatModalProps {
   visible: boolean
@@ -16,15 +17,32 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
   const [cats, setCats] = useState<any[]>([]);
 
   useEffect(() => {
-    const loadBreeds = async () => {
-      const breedList = getBreeds();
-      setBreeds(breedList);
-    };
     loadBreeds();
 
-    // 加载猫咪列表
-    CatDbProxy.getCats({ currentPage: 1, itemsPerPage: 100, filters: {} }).then(res => setCats(res.data));
-  }, []);
+    // 每次打开模态框时重新加载猫咪列表
+    if (visible) {
+      CatDbProxy.getCats({ currentPage: 1, itemsPerPage: 999, filters: {} }).then(res => setCats(res.data));
+    }
+  }, [visible]); // 添加 visible 作为依赖项
+
+  const loadBreeds = async () => {
+    const breedList = getBreeds();
+    setBreeds(breedList);
+  };
+
+  // 计算年龄的函数
+  const calculateAge = (birthDate: dayjs.Dayjs | null) => {
+    if (!birthDate) return undefined;
+    const today = dayjs();
+    const ageInMonths = today.diff(birthDate, 'month');
+    return ageInMonths;
+  };
+
+  // 处理出生日期变化
+  const handleBirthDateChange = (date: dayjs.Dayjs | null) => {
+    const age = calculateAge(date);
+    form.setFieldValue('age', age);
+  };
 
   const handleSubmit = async (): Promise<void> => {
     try {
@@ -64,6 +82,17 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
         </Form.Item>
 
         <Form.Item
+          name="gender"
+          label="性别"
+          rules={[{ required: true, message: '请选择性别' }]}
+        >
+          <Radio.Group>
+            <Radio value="male">公猫</Radio>
+            <Radio value="female">母猫</Radio>
+          </Radio.Group>
+        </Form.Item>
+
+        <Form.Item
           name="breed"
           label="猫咪品种"
           rules={[{ required: true, message: '请选择猫咪品种' }]}
@@ -80,9 +109,8 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
         <Form.Item
           name="age"
           label="年龄（月）"
-          rules={[{message: '请输入有效年龄' }]}
         >
-          <Input placeholder="请输入年龄" min={0} />
+          <Input placeholder="年龄将根据出生日期自动计算" disabled />
         </Form.Item>
 
         <Form.Item
@@ -95,7 +123,7 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
             placeholder="请选择父猫（可选）"
             filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}
           >
-            {cats.map(cat => (
+            {cats.filter(cat => cat.gender === 'male').map(cat => (
               <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
             ))}
           </Select>
@@ -111,7 +139,7 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
             placeholder="请选择母猫（可选）"
             filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}
           >
-            {cats.map(cat => (
+            {cats.filter(cat => cat.gender === 'female').map(cat => (
               <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
             ))}
           </Select>
@@ -130,7 +158,11 @@ function AddCatModal({ visible, onCancel, onSuccess }: AddCatModalProps): JSX.El
           label="出生日期"
           rules={[{ type: 'date', message: '请选择正确的出生日期' }]}
         >
-          <DatePicker format="YYYY-MM-DD" placeholder="请选择出生日期（可选）" />
+          <DatePicker 
+            format="YYYY-MM-DD" 
+            placeholder="请选择出生日期（可选）" 
+            onChange={handleBirthDateChange}
+          />
         </Form.Item>
 
         <Form.Item

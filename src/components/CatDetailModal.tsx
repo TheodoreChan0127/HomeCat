@@ -1,5 +1,5 @@
 import React, { JSX, useState, useEffect } from 'react'
-import { Modal, Form, Input, DatePicker, Select, Space, Tag } from 'antd'
+import { Modal, Form, Input, DatePicker, Select, Space, Tag, Radio } from 'antd'
 import { Cat } from '../entity/Cat'
 import { CatDbProxy } from '../db/CatDbProxy'
 import { AnimalType } from '../Types/Enum'
@@ -17,6 +17,20 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
   const [form] = Form.useForm()
   const [breeds, setBreeds] = useState<string[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
+
+  // 计算年龄的函数
+  const calculateAge = (birthDate: dayjs.Dayjs | null) => {
+    if (!birthDate) return undefined;
+    const today = dayjs();
+    const ageInMonths = today.diff(birthDate, 'month');
+    return ageInMonths;
+  };
+
+  // 处理出生日期变化
+  const handleBirthDateChange = (date: dayjs.Dayjs | null) => {
+    const age = calculateAge(date);
+    form.setFieldValue('age', age);
+  };
 
   // 修改表单初始化逻辑
   useEffect(() => {
@@ -37,7 +51,7 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
     loadBreeds();
 
     // 加载猫咪列表
-    CatDbProxy.getCats({ currentPage: 1, itemsPerPage: 100, filters: {} }).then(res => setCats(res.data));
+    CatDbProxy.getCats({ currentPage: 1, itemsPerPage: 999, filters: {} }).then(res => setCats(res.data));
   }, []);
   
   const handleSubmit = async () => {
@@ -88,6 +102,17 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
         </Form.Item>
 
         <Form.Item
+          name="gender"
+          label="性别"
+          rules={[{ required: true, message: '请选择性别' }]}
+        >
+          <Radio.Group>
+            <Radio value="male">公猫</Radio>
+            <Radio value="female">母猫</Radio>
+          </Radio.Group>
+        </Form.Item>
+
+        <Form.Item
           name="breed"
           label="猫咪品种"
           rules={[{ required: true, message: '请选择猫咪品种' }]}
@@ -129,9 +154,8 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
         <Form.Item
           name="age"
           label="年龄（月）"
-          rules={[{ required: true, message: '请输入有效年龄' }]}
         >
-          <Input type="number" placeholder="请输入年龄" min={0} />
+          <Input type="number" placeholder="年龄将根据出生日期自动计算" disabled />
         </Form.Item>
 
         <Form.Item
@@ -144,7 +168,7 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
             placeholder="请选择父猫（可选）"
             filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}
           >
-            {cats.map(cat => (
+            {cats.filter(cat => cat.gender === 'male').map(cat => (
               <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
             ))}
           </Select>
@@ -160,7 +184,7 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
             placeholder="请选择母猫（可选）"
             filterOption={(input, option) => String(option?.children).toLowerCase().includes(input.toLowerCase())}
           >
-            {cats.map(cat => (
+            {cats.filter(cat => cat.gender === 'female').map(cat => (
               <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
             ))}
           </Select>
@@ -177,7 +201,12 @@ function CatDetailModal({ visible, onCancel, cat, onSuccess }: CatDetailModalPro
           name="birthDate"
           label="出生日期"
         >
-          <DatePicker format="YYYY-MM-DD" placeholder="请选择出生日期（可选）" style={{ width: '100%' }} />
+          <DatePicker 
+            format="YYYY-MM-DD" 
+            placeholder="请选择出生日期（可选）" 
+            style={{ width: '100%' }}
+            onChange={handleBirthDateChange}
+          />
         </Form.Item>
 
         <Form.Item

@@ -1,9 +1,10 @@
-import { Form, DatePicker, Modal, Input, InputNumber, Switch } from 'antd';
+import { Form, DatePicker, Modal, Input, InputNumber, Switch, Select } from 'antd';
 import { CatDbProxy } from '../../db/CatDbProxy';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pregnant } from '../../entity/Pregnant';
 import dayjs, { Dayjs } from 'dayjs';
 import { getPregnancySettings } from '../../config/pregnancySettings';
+import { Cat } from '../../entity/Cat';
 
 interface PregnancyModalProps {
   visible: boolean;
@@ -21,6 +22,24 @@ export function PregnancyModal({
   editingRecord
 }: PregnancyModalProps) {
   const [form] = Form.useForm();
+  const [maleCats, setMaleCats] = useState<Cat[]>([]);
+
+  // 加载公猫列表
+  useEffect(() => {
+    const loadMaleCats = async () => {
+      try {
+        const result = await CatDbProxy.getCats({ 
+          currentPage: 1, 
+          itemsPerPage: 100, 
+          filters: { gender: 'male' } 
+        });
+        setMaleCats(result.data);
+      } catch (error) {
+        console.error('加载公猫列表失败:', error);
+      }
+    };
+    loadMaleCats();
+  }, []);
 
   // 计算提醒日期
   const calculateReminderDates = (matingDate: Dayjs) => {
@@ -67,7 +86,8 @@ export function PregnancyModal({
         reminder1Day: dayjs(new Date(editingRecord.reminder1Day)),
         isDelivered: editingRecord.isDelivered,
         deliveryCount: editingRecord.deliveryCount,
-        notes: editingRecord.notes
+        notes: editingRecord.notes,
+        maleCatId: editingRecord.maleCatId
       });
     } else {
       form.resetFields();
@@ -84,7 +104,8 @@ export function PregnancyModal({
         expectedDeliveryDate: values.expectedDeliveryDate?.toISOString() || null,
         reminder7Days: values.reminder7Days ? values.reminder7Days.toISOString() : null,
         reminder3Days: values.reminder3Days ? values.reminder3Days.toISOString() : null,
-        reminder1Day: values.reminder1Day ? values.reminder1Day.toISOString() : null
+        reminder1Day: values.reminder1Day ? values.reminder1Day.toISOString() : null,
+        maleCatId: values.maleCatId || null
       };
       
       if (editingRecord) {
@@ -109,6 +130,29 @@ export function PregnancyModal({
       destroyOnHidden
     >
       <Form form={form} layout="vertical">
+        <Form.Item
+          label="交配公猫"
+          name="maleCatId"
+          rules={[{ required: true, message: '请选择交配公猫' }]}
+        >
+          <Select
+            placeholder="请选择交配公猫"
+            allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.children as unknown as string)
+                .toLowerCase()
+                .includes(input.toLowerCase())
+            }
+          >
+            {maleCats.map(cat => (
+              <Select.Option key={cat.id} value={cat.id}>
+                {cat.name} ({cat.breed})
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
         <Form.Item
           label="交配日期"
           name="matingDate"

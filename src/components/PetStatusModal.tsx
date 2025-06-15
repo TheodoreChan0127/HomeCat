@@ -46,6 +46,8 @@ function PetStatusModal({ visible, onCancel, cat }: PetStatusModalProps): JSX.El
 
   const [editingRecord, setEditingRecord] = useState<{ type: string; data: any } | null>(null);
 
+  const [maleCats, setMaleCats] = useState<Cat[]>([]);
+
   const handleEditWeight = (record: WeightRecord) => {
     setEditingRecord({ type: 'weight', data: record });
     setShowWeightForm(true);
@@ -132,9 +134,11 @@ useEffect(() => {
       setWeightRecords(weights.sort((a, b) => 
         new Date(b.weighDate).getTime() - new Date(a.weighDate).getTime()
       ))
-      setVaccinationRecords(vaccines.sort((a, b) => 
-        new Date(b.injectionDate).getTime() - new Date(a.injectionDate).getTime()
-      ))
+      // 修改疫苗记录排序逻辑
+      setVaccinationRecords(vaccines.sort((a, b) => {
+        // 然后按接种日期排序
+        return new Date(a.injectionDate).getTime() - new Date(b.injectionDate).getTime();
+      }))
       setExternalDewormings(extDeworm.sort((a, b) => 
         new Date(b.dewormingDate).getTime() - new Date(a.dewormingDate).getTime()
       ))
@@ -145,12 +149,29 @@ useEffect(() => {
         new Date(b.expectedDeliveryDate).getTime() - new Date(a.expectedDeliveryDate).getTime()
       ))
       setIllnessRecords(illnesses.sort((a, b) => 
-        new Date(b.id).getTime() - new Date(a.id).getTime()  // 按记录时间排序（根据实际字段调整）
+        new Date(b.id).getTime() - new Date(a.id).getTime()
       ))
     }).catch(console.error)
     .finally(() => setLoading(false));
   }
 }, [visible, cat]);
+
+// 加载公猫列表
+useEffect(() => {
+  const loadMaleCats = async () => {
+    try {
+      const result = await CatDbProxy.getCats({ 
+        currentPage: 1, 
+        itemsPerPage: 100, 
+        filters: { gender: 'male' } 
+      });
+      setMaleCats(result.data);
+    } catch (error) {
+      console.error('加载公猫列表失败:', error);
+    }
+  };
+  loadMaleCats();
+}, []);
 
 // Single handleSuccess function
 const handleSuccess = () => {
@@ -283,6 +304,7 @@ return (
                         {`第${weightRecords.length - index}次记录 - ${record.weight}kg (${dayjs(record.weighDate).format('YYYY-MM-DD')})`}
                       </List.Item>
                     )}
+                    locale={{ emptyText: '暂无体重记录' }}
                   />
                 </Space>
               )
@@ -295,16 +317,20 @@ return (
                   <Button onClick={() => {setShowVaccineForm(true); setEditingRecord({type:'' , data: undefined})}}>添加疫苗记录</Button>
                   <List
                     dataSource={vaccinationRecords}
-                    renderItem={(v: VaccinationRecord) => (
+                    renderItem={(v: VaccinationRecord, index) => (
                       <List.Item
                         actions={[
                           <Button type="link" onClick={() => handleEditVaccine(v)}>编辑</Button>,
                           <Button type="link" danger onClick={() => handleDelete('vaccine', v.id)}>删除</Button>
                         ]}
                       >
-                        {`${v.vaccineBrand} - 接种日期：${dayjs(v.injectionDate).format('YYYY-MM-DD')}`}
+                        <div>
+                          <div>{`第${vaccinationRecords.length - index}针 - ${v.vaccineBrand}`}</div>
+                          <div>接种日期：{dayjs(v.injectionDate).format('YYYY-MM-DD')}</div>
+                        </div>
                       </List.Item>
                     )}
+                    locale={{ emptyText: '暂无疫苗接种记录' }}
                   />
                 </Space>
               )
@@ -329,6 +355,7 @@ return (
                         {`第${externalDewormings.length - index}次 - ${v.brand} (${dayjs(v.dewormingDate).format('YYYY-MM-DD')})`}
                       </List.Item>
                     )}
+                    locale={{ emptyText: '暂无体外驱虫记录' }}
                   />
                 </Space>
               )
@@ -353,6 +380,7 @@ return (
                         {`第${internalDewormings.length - index}次 - ${v.brand} (${dayjs(v.dewormingDate).format('YYYY-MM-DD')})`}
                       </List.Item>
                     )}
+                    locale={{ emptyText: '暂无体内驱虫记录' }}
                   />
                 </Space>
               )
@@ -367,24 +395,29 @@ return (
                   </Button>
                   <List
                     dataSource={pregnancies}
-                    renderItem={(p: Pregnant, index) => (
-                      <List.Item
-                        actions={[
-                          <Button type="link" onClick={() => handleEditPregnancy(p)}>编辑</Button>,
-                          <Button type="link" danger onClick={() => handleDelete('pregnancy', p.id)}>删除</Button>
-                        ]}
-                      >
-                        <div>
-                          <div>第{pregnancies.length - index}次怀孕记录</div>
-                          <div>交配日期：{dayjs(p.matingDate).format('YYYY-MM-DD')}</div>
-                          <div>预产期：{dayjs(p.expectedDeliveryDate).format('YYYY-MM-DD')}</div>
-                          <div>提醒日期：7天前({dayjs(p.reminder7Days).format('YYYY-MM-DD')}) | 3天前({dayjs(p.reminder3Days).format('YYYY-MM-DD')}) | 1天前({dayjs(p.reminder1Day).format('YYYY-MM-DD')})</div>
-                          <div>状态：{p.isDelivered ? '已生产' : '待产'}</div>
-                          {p.isDelivered && p.deliveryCount && <div>生产数量：{p.deliveryCount}只</div>}
-                          {p.notes && <div>备注：{p.notes}</div>}
-                        </div>
-                      </List.Item>
-                    )}
+                    renderItem={(p: Pregnant, index) => {
+                      const maleCat = maleCats.find(cat => cat.id === p.maleCatId);
+                      return (
+                        <List.Item
+                          actions={[
+                            <Button type="link" onClick={() => handleEditPregnancy(p)}>编辑</Button>,
+                            <Button type="link" danger onClick={() => handleDelete('pregnancy', p.id)}>删除</Button>
+                          ]}
+                        >
+                          <div>
+                            <div>第{pregnancies.length - index}次怀孕记录</div>
+                            <div>交配公猫：{maleCat ? `${maleCat.name} (${maleCat.breed})` : '未记录'}</div>
+                            <div>交配日期：{dayjs(p.matingDate).format('YYYY-MM-DD')}</div>
+                            <div>预产期：{dayjs(p.expectedDeliveryDate).format('YYYY-MM-DD')}</div>
+                            <div>提醒日期：7天前({dayjs(p.reminder7Days).format('YYYY-MM-DD')}) | 3天前({dayjs(p.reminder3Days).format('YYYY-MM-DD')}) | 1天前({dayjs(p.reminder1Day).format('YYYY-MM-DD')})</div>
+                            <div>状态：{p.isDelivered ? '已生产' : '待产'}</div>
+                            {p.isDelivered && p.deliveryCount && <div>生产数量：{p.deliveryCount}只</div>}
+                            {p.notes && <div>备注：{p.notes}</div>}
+                          </div>
+                        </List.Item>
+                      );
+                    }}
+                    locale={{ emptyText: '暂无怀孕记录' }}
                   />
                 </Space>
               )
@@ -414,6 +447,7 @@ return (
                         </div>
                       </List.Item>
                     )}
+                    locale={{ emptyText: '暂无疾病记录' }}
                   />
                 </Space>
               )

@@ -1,5 +1,5 @@
-import { Button, Card, Input, message, Select, Space, Tag } from 'antd'
-import { PlusOutlined, SearchOutlined, TeamOutlined } from '@ant-design/icons'
+import { Button, Card, Input, message, Select, Space, Tag, Popconfirm } from 'antd'
+import { PlusOutlined, SearchOutlined, TeamOutlined, ReloadOutlined, DeleteOutlined } from '@ant-design/icons'
 import { JSX } from 'react/jsx-runtime'
 import React,{ useState, useCallback, useEffect } from 'react'
 import DashboardLayout from '../components/dashboard'
@@ -94,6 +94,33 @@ const handleClearAll = useCallback(async () => {
   // 加载品种数据
   useEffect(loadBreeds, [])
 
+  // 添加删除单只猫咪的方法
+  const handleDeleteCat = async (catId: number) => {
+    try {
+      await CatDbProxy.deleteCat(catId);
+      messageApi.open({
+        type: 'success',
+        content: '猫咪已删除',
+      });
+      fetchCats(); // 刷新列表
+    } catch (error) {
+      console.error('删除失败:', error);
+      messageApi.open({
+        type: 'error',
+        content: `删除失败: ${error instanceof Error ? error.message : '未知错误'}`,
+      });
+    }
+  };
+
+  // 添加刷新方法
+  const handleRefresh = () => {
+    fetchCats();
+    messageApi.open({
+      type: 'success',
+      content: '数据已刷新',
+    });
+  };
+
   return (
     <DashboardLayout>
       {contextHolder}
@@ -155,6 +182,12 @@ const handleClearAll = useCallback(async () => {
               </Space>
               <Space>
                 <Button 
+                  icon={<ReloadOutlined />}
+                  onClick={handleRefresh}
+                >
+                  刷新
+                </Button>
+                <Button 
                   type="primary" 
                   icon={<PlusOutlined />} 
                   onClick={handleAddCat}
@@ -191,19 +224,44 @@ const handleClearAll = useCallback(async () => {
                         }}
                       > 
                         <h3 className="text-lg font-medium mb-1">{cat.name}</h3> 
-                        <p className="text-gray-600 text-sm">{cat.breed} · {cat.age}岁</p> 
+                        <p className="text-gray-600 text-sm">
+                          {cat.breed} · {cat.gender === 'male' ? '公猫' : '母猫'} · {cat.age}岁
+                        </p> 
                       </div> 
-                      <Button 
-                        type="primary" 
-                        size="small"
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          setSelectedCat(cat); 
-                          setIsStatusModalVisible(true); 
-                        }} 
-                      > 
-                        查看状态 
-                      </Button> 
+                      <Space>
+                        <Button 
+                          type="primary" 
+                          size="small"
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setSelectedCat(cat); 
+                            setIsStatusModalVisible(true); 
+                          }} 
+                        > 
+                          查看状态 
+                        </Button>
+                        <Popconfirm
+                          title="删除猫咪"
+                          description="确定要删除这只猫咪吗？此操作不可恢复。"
+                          onConfirm={(e) => {
+                            e?.stopPropagation();
+                            handleDeleteCat(cat.id);
+                          }}
+                          onCancel={(e) => e?.stopPropagation()}
+                          okText="确定"
+                          cancelText="取消"
+                        >
+                          <Button 
+                            type="primary" 
+                            danger
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            删除
+                          </Button>
+                        </Popconfirm>
+                      </Space>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Tag color={cat.isPregnant ? "red" : "default"}>

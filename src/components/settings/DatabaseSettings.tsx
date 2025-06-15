@@ -62,25 +62,21 @@ const DatabaseSettings: React.FC = () => {
 
   const handleDumpTable = async (tableName: TableName) => {
     try {
-      console.log(`开始导出 ${tableName} 表数据...`);
       const data = await CatDbProxy.dumpTable(tableName);
-      console.log(`${tableName} 表数据获取完成，共 ${data.length} 条记录`);
-
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const fileName = `${tableName}_${new Date().toISOString().split('T')[0]}.json`;
+      const fileName = `${tableName}_backup_${new Date().toISOString().split('T')[0]}.json`;
       a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      console.log(`文件 ${fileName} 已生成并开始下载`);
-      messageApi.success(`导出 ${tableName} 表数据成功`);
+      messageApi.success('导出数据成功');
     } catch (error) {
-      console.error('导出表数据失败:', error);
-      messageApi.error('导出表数据失败');
+      console.error('导出数据失败:', error);
+      messageApi.error('导出数据失败');
     }
   };
 
@@ -119,76 +115,74 @@ const DatabaseSettings: React.FC = () => {
   // 导入数据
   const handleImport = async (file: File) => {
     try {
-      console.log('开始导入数据...');
-      console.log('文件名:', file.name);
-      console.log('文件大小:', file.size, 'bytes');
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+          const tables = Object.keys(data) as TableName[];
+          const importResults: { table: string; success: boolean; message: string }[] = [];
 
-      const text = await file.text();
-      console.log('文件读取完成，开始解析 JSON...');
-      const data = JSON.parse(text) as Record<string, any[]>;
-      console.log('JSON 解析完成，开始验证数据...');
-
-      // 验证数据完整性
-      const requiredTables = Object.keys(dbTables) as TableName[];
-
-      // 检查所有必需的表是否存在
-      console.log('验证必需的表是否存在...');
-      for (const table of requiredTables) {
-        if (!(table in data)) {
-          console.error(`缺少必需的表: ${table}`);
-          throw new Error(`缺少必需的表: ${table}`);
-        }
-        console.log(`表 ${table} 存在，包含 ${data[table].length} 条记录`);
-      }
-
-      // 验证外键关系
-      console.log('验证外键关系...');
-      const catIds = new Set(data.cats.map((cat: any) => cat.id));
-      console.log(`猫咪表共有 ${catIds.size} 条记录`);
-      
-      // 验证所有关联表的外键
-      const relatedTables = ['externalDewormings', 'internalDewormings', 'illnesses', 'pregnancies', 'vaccinationRecords', 'weightRecords', 'kittenSales'];
-      for (const table of relatedTables) {
-        if (table in data) {  // 添加检查确保表存在
-          console.log(`验证 ${table} 表的外键关系...`);
-          let invalidCount = 0;
-          for (const record of data[table]) {
-            if (!catIds.has(record.catId)) {
-              invalidCount++;
-              console.error(`${table} 表中发现无效的 catId: ${record.catId}`);
+          // 逐个表进行导入
+          for (const table of tables) {
+            try {
+              if (dbTables[table]) {
+                await db.table(table).clear();
+                await db.table(table).bulkAdd(data[table]);
+                importResults.push({
+                  table,
+                  success: true,
+                  message: `导入成功，共 ${data[table].length} 条记录`
+                });
+              } else {
+                importResults.push({
+                  table,
+                  success: false,
+                  message: '表不存在，跳过导入'
+                });
+              }
+            } catch (error) {
+              importResults.push({
+                table,
+                success: false,
+                message: `导入失败：${error instanceof Error ? error.message : '未知错误'}`
+              });
             }
           }
-          if (invalidCount > 0) {
-            throw new Error(`${table} 表中存在 ${invalidCount} 条无效的 catId 记录`);
-          }
-          console.log(`${table} 表外键验证通过`);
-        }
-      }
 
-      // 导入数据
-      console.log('开始导入数据到数据库...');
-      await db.transaction('rw', Object.keys(data), async () => {
-        for (const [table, records] of Object.entries(data)) {
-          console.log(`清空 ${table} 表...`);
-          await db.table(table).clear();
-          if (records && records.length > 0) {
-            console.log(`向 ${table} 表导入 ${records.length} 条记录...`);
-            await db.table(table).bulkAdd(records);
-            console.log(`${table} 表导入完成`);
+          // 显示导入结果
+          const successCount = importResults.filter(r => r.success).length;
+          const failCount = importResults.filter(r => !r.success).length;
+          
+          if (failCount === 0) {
+            messageApi.success(`所有表导入成功，共 ${successCount} 个表`);
           } else {
-            console.log(`${table} 表没有记录需要导入`);
+            messageApi.warning(
+              <div>
+                <p>导入完成，但部分表导入失败：</p>
+                <ul>
+                  {importResults.map((result, index) => (
+                    <li key={index} style={{ color: result.success ? '#52c41a' : '#ff4d4f' }}>
+                      {result.table}: {result.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
           }
-        }
-      });
 
-      console.log('所有数据导入完成');
-      messageApi.success('导入数据成功');
-      loadTableInfo();
+          // 刷新表信息
+          loadTableInfo();
+        } catch (error) {
+          console.error('解析导入文件失败:', error);
+          messageApi.error('解析导入文件失败，请确保文件格式正确');
+        }
+      };
+      reader.readAsText(file);
     } catch (error) {
-      console.error('导入数据失败:', error);
-      messageApi.error(`导入数据失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      console.error('读取文件失败:', error);
+      messageApi.error('读取文件失败');
     }
-    return false; // 阻止自动上传
+    return false;
   };
 
   const columns = [
@@ -207,13 +201,6 @@ const DatabaseSettings: React.FC = () => {
       key: 'action',
       render: (_: unknown, record: TableInfo) => (
         <Space>
-          <Button
-            type="primary"
-            icon={<DownloadOutlined />}
-            onClick={() => handleDumpTable(record.name as TableName)}
-          >
-            导出数据
-          </Button>
           <Button 
             danger 
             icon={<DeleteOutlined />}
@@ -246,7 +233,7 @@ const DatabaseSettings: React.FC = () => {
           beforeUpload={handleImport}
         >
           <Button icon={<UploadOutlined />}>
-            导入数据
+            导入所有数据
           </Button>
         </Upload>
       </div>

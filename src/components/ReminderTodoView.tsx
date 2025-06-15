@@ -65,12 +65,12 @@ export const ReminderTodoView: React.FC = () => {
       const catsResult = await CatDbProxy.getCats({ currentPage: 1, itemsPerPage: 100, filters: {} });
       setCats(catsResult.data);
 
-      // 获取TODO
+      // 获取待办事项
       const pendingTodos = await todoService.getPendingTodos();
       setTodos(pendingTodos);
     } catch (error) {
-      console.error('加载TODO失败:', error);
-      showError('加载TODO失败');
+      console.error('加载待办事项失败:', error);
+      showError('加载待办事项失败');
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ export const ReminderTodoView: React.FC = () => {
       showSuccess('待办事项已完成');
       await loadData();
     } catch (error) {
-      console.error('完成TODO失败:', error);
+      console.error('完成待办事项失败:', error);
       showError('完成待办事项失败');
     }
   };

@@ -1,6 +1,7 @@
 export class Pregnant {
   id: number;
   catId: number;
+  maleCatId: number | null = null; // 交配公猫ID
   matingDate: string;
   expectedDeliveryDate: string;
   reminder7Days: string;

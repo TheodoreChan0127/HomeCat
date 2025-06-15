@@ -11,6 +11,8 @@ export class Cat {
 
   name = ""; // 名字
 
+  gender: "male" | "female" = "male"; // 性别
+
   age = -1; // 年龄
 
   fatherId = -1; // 父宠物编号（外键）
