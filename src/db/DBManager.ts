@@ -44,7 +44,7 @@ export class DBManager extends Dexie {
       purchases: "++id, item, amount, isSingleCat, catId, purchaseDate",
       goodsSales: "++id, item, amount, saleDate",
       kittenSales: "++id, kittenId, amount, saleDate",
-      todos: "++id, title, description, dueDate, completed, priority",
+      todos: "++id, catId, content, status, created_at, updated_at",
       monthlyStats:
         "++id, year, month, totalIncome, totalExpense, kittenCount, [year+month]",
     });
